@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blinq · commish leaderboard · season 01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="glitch.css" />
+<style>
+  /* page header */
+  .lb-hero { padding: 56px 0 36px; }
+  @media (max-width: 600px) { .lb-hero { padding: 36px 0 24px; } }
+  .lb-hero .eyebrow { margin-bottom: 16px; }
+  .lb-hero .h-page { max-width: 18ch; }
+  .lb-hero .sub {
+    margin-top: 18px;
+    font-size: 16px; color: var(--bone-dim);
+    max-width: 56ch;
+  }
+  .lb-hero .sub b { color: var(--bone); font-weight: 600; }
+
+  /* big season stats */
+  .season {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .season .stat-cell { padding: 22px 22px; }
+  .season .stat-cell .v { font-size: 32px; }
+  .season .stat-cell:first-child { border-left: 0; }
+  .season .stat-cell:nth-child(-n+5) { border-top: 0; }
+  @media (max-width: 900px) {
+    .season { grid-template-columns: 1fr 1fr; }
+    .season .stat-cell { border-top: 1px solid var(--line) !important; }
+    .season .stat-cell:first-child,
+    .season .stat-cell:nth-child(2) { border-top: 0 !important; }
+    .season .stat-cell:nth-child(odd) { border-left: 0; }
+  }
+
+  /* filter bar */
+  .filter-bar {
+    margin-top: 48px;
+    padding-bottom: 16px;
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--line);
+  }
+  .filter-bar .l, .filter-bar .r {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .filter-bar .r { margin-left: auto; }
+  .filter-bar .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.14em;
+  }
+  .toggle {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--bone-dim);
+    cursor: pointer;
+  }
+  .toggle .sw {
+    width: 30px; height: 16px; background: var(--line-2);
+    position: relative; transition: background .15s;
+  }
+  .toggle .sw::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 12px; height: 12px; background: var(--bone-dim);
+    transition: all .15s;
+  }
+  .toggle.on .sw { background: var(--lime); }
+  .toggle.on .sw::after { left: 16px; background: #0a0a0c; }
+  .toggle.on { color: var(--lime); }
+
+  .search {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg-2); border: 1px solid var(--line-2);
+    padding: 8px 12px;
+  }
+  .search input {
+    background: transparent; border: 0; color: var(--bone);
+    outline: none; font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; width: 180px;
+  }
+  .search input::placeholder { color: var(--bone-mute); }
+  .search .ic { color: var(--bone-mute); font-size: 12px; }
+
+  /* the big board */
+  .board {
+    margin-top: 16px;
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+    position: relative;
+  }
+  .board::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--mag), var(--cyan), var(--lime)); }
+
+  .board-head, .board-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 130px 130px 140px 100px;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+  }
+  .board-head {
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; color: var(--bone-mute);
+  }
+  .board-row {
+    border-top: 1px solid var(--line);
+    transition: background .12s;
+  }
+  .board-row:hover { background: rgba(255,45,138,0.03); }
+  .board-row .r {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 18px;
+    color: var(--bone-mute); letter-spacing: -0.02em;
+  }
+  .board-row.top3 .r { color: var(--bone); font-size: 22px; }
+  .board-row.top3:nth-child(2) .r { color: var(--lime); }
+  .board-row.top3:nth-child(3) .r { color: var(--mag); }
+  .board-row.top3:nth-child(4) .r { color: var(--cyan); }
+
+  .board-row .n {
+    display: flex; align-items: center; gap: 12px;
+    overflow: hidden;
+  }
+  .board-row .n .name {
+    font-size: 16px; color: var(--bone);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .board-row .n .id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--lime);
+    border: 1px solid rgba(196,255,77,0.3);
+    padding: 1px 6px;
+    flex-shrink: 0;
+  }
+  .board-row .n .joined {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--bone-mute);
+    margin-top: 3px; letter-spacing: 0.06em;
+  }
+
+  .board-row .pts {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; font-weight: 600;
+    text-align: right; color: var(--bone-dim);
+    letter-spacing: -0.01em;
+  }
+  .board-row.top3 .pts { color: var(--bone); }
+
+  .board-row .alloc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px; font-weight: 700;
+    text-align: right; color: var(--mag);
+    letter-spacing: -0.02em;
+  }
+  .board-row .alloc .of {
+    display: block;
+    font-size: 10px; color: var(--bone-mute);
+    margin-top: 3px; letter-spacing: 0.06em;
+    font-weight: 400;
+  }
+
+  .board-row .vol {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    text-align: right; color: var(--bone-dim);
+  }
+
+  .board-row .t {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+    color: var(--lime); font-weight: 600;
+  }
+  .board-row .t.down { color: var(--red); }
+
+  .board-row.basedchad { background: rgba(255,45,138,0.07); }
+  .board-row.basedchad .n .name { color: var(--mag); font-weight: 600; }
+
+  .board-row.zero {
+    color: var(--bone-mute);
+  }
+  .board-row.zero .pts, .board-row.zero .alloc, .board-row.zero .vol { color: var(--bone-mute); }
+  .board-row.zero .alloc { color: var(--bone-mute); }
+
+  /* you-could row */
+  .you-could-row {
+    border-top: 1px dashed rgba(196,255,77,0.3) !important;
+    background: rgba(196,255,77,0.04);
+    padding: 22px 24px !important;
+    display: grid;
+    grid-template-columns: 70px 1fr auto;
+    align-items: center; gap: 16px;
+  }
+  .you-could-row .r {
+    font-family: 'JetBrains Mono', monospace; color: var(--lime);
+    font-weight: 700; font-size: 18px;
+  }
+  .you-could-row .msg {
+    font-size: 15px; color: var(--lime); font-weight: 500;
+  }
+  .you-could-row .msg .meta {
+    display: block; margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.06em;
+  }
+
+  /* responsive board */
+  @media (max-width: 900px) {
+    .board-head, .board-row {
+      grid-template-columns: 50px 1fr 100px 100px;
+      padding: 14px 16px;
+      gap: 10px;
+    }
+    .board-head .vol-h, .board-row .vol,
+    .board-head .t-h, .board-row .t { display: none; }
+    .you-could-row { grid-template-columns: 50px 1fr auto; padding: 16px !important; }
+  }
+  @media (max-width: 540px) {
+    .board-head, .board-row { grid-template-columns: 36px 1fr 80px; }
+    .board-head .alloc-h, .board-row .alloc { display: none; }
+    .board-row .n .id { display: none; }
+    .board-row .pts { font-size: 14px; }
+  }
+
+  /* pagination */
+  .pager {
+    padding: 18px 24px;
+    border-top: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--bone-mute);
+  }
+  .pager .pages { display: flex; gap: 6px; }
+  .pager .pages button {
+    width: 28px; height: 28px; border: 1px solid var(--line-2); color: var(--bone-dim);
+  }
+  .pager .pages button.on { background: var(--mag); color: #fff; border-color: var(--mag); }
+  .pager .pages button:hover:not(.on) { border-color: var(--bone); color: var(--bone); }
+
+  /* logged-out call to action */
+  .cta-strip {
+    margin: 56px 0 0;
+    padding: 36px 32px;
+    border: 1px solid var(--line-2);
+    background:
+      linear-gradient(135deg, rgba(196,255,77,0.06), rgba(255,45,138,0.06)),
+      var(--bg-2);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+    position: relative;
+  }
+  .cta-strip::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--mag), var(--cyan), var(--lime)); }
+  .cta-strip h3 {
+    margin: 0 0 8px;
+    font-size: 28px; font-weight: 700; color: var(--bone);
+    letter-spacing: -0.02em;
+  }
+  .cta-strip h3 em { color: var(--lime); font-style: normal; }
+  .cta-strip p {
+    margin: 0; font-size: 14px; color: var(--bone-dim); max-width: 60ch;
+  }
+  .cta-strip .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  @media (max-width: 760px) {
+    .cta-strip { grid-template-columns: 1fr; padding: 28px 22px; }
+  }
+
+  /* sybil / methodology note */
+  .meth {
+    margin-top: 56px; padding: 28px 0 36px;
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 40px;
+  }
+  .meth h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em;
+    color: var(--mag); margin: 0;
+  }
+  .meth .body {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px;
+  }
+  .meth .body p {
+    margin: 0; font-size: 13px; color: var(--bone-dim); line-height: 1.55;
+  }
+  .meth .body p b { color: var(--bone); }
+  @media (max-width: 800px) { .meth { grid-template-columns: 1fr; gap: 16px; } .meth .body { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- topbar -->
+<header class="topbar">
+  <div class="wrap-wide topbar-inner">
+    <div class="logo"><span class="b">blinq</span><span class="dot">.</span></div>
+    <div class="crumbs"><span class="seg">/</span> referrals <span class="seg">/</span> <span class="cur">leaderboard</span></div>
+    <div class="topbar-right">
+      <span class="pill live">season 01 · live</span>
+      <span class="pill compact-hide">53 days left</span>
+      <button class="connect">connect →</button>
+    </div>
+  </div>
+</header>
+
+<!-- ribbon -->
+<div class="ribbon">
+  <div class="ribbon-track">
+    <span class="seg"><span class="dot"></span><b>SEASON 01</b> · 53 days remaining</span>
+    <span class="seg"><span class="dot"></span><b>$8.42M</b> vol attributed</span>
+    <span class="seg"><span class="dot"></span><b>52 / 60</b> commishes active</span>
+    <span class="seg"><span class="dot"></span><b>2.50%</b> $BLINQ pool · 25M tokens</span>
+    <span class="seg"><span class="dot"></span><b>SEASON 01</b> · 53 days remaining</span>
+    <span class="seg"><span class="dot"></span><b>$8.42M</b> vol attributed</span>
+    <span class="seg"><span class="dot"></span><b>52 / 60</b> commishes active</span>
+    <span class="seg"><span class="dot"></span><b>2.50%</b> $BLINQ pool · 25M tokens</span>
+  </div>
+</div>
+
+<main class="wrap-wide">
+
+  <section class="lb-hero">
+    <div class="eyebrow">// COMMISH LEADERBOARD · LIVE</div>
+    <h1 class="h-page">Season 01 · <em>the standings.</em></h1>
+    <p class="sub">
+      Curated commishes ranked by points from <b>attributed Polymarket volume</b>.
+      Identity-bound accounts earn a <b>1.2× multiplier</b>. The
+      <b>2.50% $BLINQ pool</b> distributes pro-rata against this board at TGE.
+      Discretionary sybil sweep applies before snapshot.
+    </p>
+
+    <div class="season">
+      <div class="stat-cell">
+        <div class="k">DAYS REMAINING</div>
+        <div class="v lime">53</div>
+        <div class="sub">/ 90 · ends Aug 14</div>
+      </div>
+      <div class="stat-cell">
+        <div class="k">COMMISHES</div>
+        <div class="v">52</div>
+        <div class="sub">of 60 invited</div>
+      </div>
+      <div class="stat-cell">
+        <div class="k">VOL ATTRIBUTED</div>
+        <div class="v">$8.42<small>M</small></div>
+        <div class="sub delta">▲ $412K · 24h</div>
+      </div>
+      <div class="stat-cell">
+        <div class="k">REFEREES</div>
+        <div class="v">3,847</div>
+        <div class="sub delta">▲ 184 · 24h</div>
+      </div>
+      <div class="stat-cell">
+        <div class="k">POOL AT TGE</div>
+        <div class="v mag">25<small>M</small></div>
+        <div class="sub">$BLINQ · 2.5%</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- filters -->
+  <div class="filter-bar">
+    <div class="l">
+      <span class="lbl">TIME</span>
+      <div class="tabs">
+        <div class="tab on">all-time</div>
+        <div class="tab">this week</div>
+        <div class="tab">today</div>
+      </div>
+    </div>
+    <div class="r">
+      <div class="toggle on">
+        <span class="sw"></span>
+        identity-verified only
+      </div>
+      <div class="search">
+        <span class="ic">⌕</span>
+        <input placeholder="search · @handle or 0x…" />
+      </div>
+    </div>
+  </div>
+
+  <!-- the board -->
+  <section class="board">
+    <div class="board-head">
+      <span>RANK</span>
+      <span>COMMISH</span>
+      <span style="text-align:right" class="vol-h">VOL ATTR</span>
+      <span style="text-align:right">POINTS</span>
+      <span style="text-align:right" class="alloc-h">EST. ALLOC</span>
+      <span style="text-align:right" class="t-h">24H</span>
+    </div>
+
+    <div class="board-row top3">
+      <span class="r">01</span>
+      <div class="n">
+        <div class="avatar sm bone">ch</div>
+        <div>
+          <div class="name">@cryptoharpy <span class="id">◇ ID</span></div>
+          <div class="name joined">joined day 02</div>
+        </div>
+      </div>
+      <div class="vol">$1.84M</div>
+      <div class="pts">184,021</div>
+      <div class="alloc">2.18%<span class="of">≈ 545K $BLINQ</span></div>
+      <div class="t">▲ 4.2</div>
+    </div>
+    <div class="board-row top3">
+      <span class="r">02</span>
+      <div class="n">
+        <div class="avatar sm lime">dm</div>
+        <div>
+          <div class="name">@degenmother <span class="id">◇ ID</span></div>
+          <div class="name joined">joined day 01</div>
+        </div>
+      </div>
+      <div class="vol">$1.52M</div>
+      <div class="pts">152,776</div>
+      <div class="alloc">1.81%<span class="of">≈ 453K $BLINQ</span></div>
+      <div class="t">▲ 1.8</div>
+    </div>
+    <div class="board-row top3">
+      <span class="r">03</span>
+      <div class="n">
+        <div class="avatar sm cyan">ft</div>
+        <div>
+          <div class="name">@frenstech.eth</div>
+          <div class="name joined">joined day 04</div>
+        </div>
+      </div>
+      <div class="vol">$1.41M</div>
+      <div class="pts">141,303</div>
+      <div class="alloc">1.67%<span class="of">≈ 419K $BLINQ</span></div>
+      <div class="t down">▼ 0.9</div>
+    </div>
+
+    <div class="board-row">
+      <span class="r">04</span>
+      <div class="n">
+        <div class="avatar sm">9a</div>
+        <div>
+          <div class="name">0x9a32…41dc</div>
+          <div class="name joined">joined day 07</div>
+        </div>
+      </div>
+      <div class="vol">$1.22M</div>
+      <div class="pts">122,801</div>
+      <div class="alloc">1.45%<span class="of">≈ 364K $BLINQ</span></div>
+      <div class="t">▲ 2.4</div>
+    </div>
+    <div class="board-row">
+      <span class="r">05</span>
+      <div class="n">
+        <div class="avatar sm">hm</div>
+        <div>
+          <div class="name">@hardmodeanon <span class="id">◇ ID</span></div>
+          <div class="name joined">joined day 03</div>
+        </div>
+      </div>
+      <div class="vol">$1.04M</div>
+      <div class="pts">104,510</div>
+      <div class="alloc">1.24%<span class="of">≈ 310K $BLINQ</span></div>
+      <div class="t">▲ 1.1</div>
+    </div>
+    <div class="board-row">
+      <span class="r">06</span>
+      <div class="n">
+        <div class="avatar sm">nf</div>
+        <div>
+          <div class="name">@narrativefarmer <span class="id">◇ ID</span></div>
+          <div class="name joined">joined day 11</div>
+        </div>
+      </div>
+      <div class="vol">$908K</div>
+      <div class="pts">90,838</div>
+      <div class="alloc">1.08%<span class="of">≈ 269K $BLINQ</span></div>
+      <div class="t">▲ 0.4</div>
+    </div>
+    <div class="board-row basedchad">
+      <span class="r">07</span>
+      <div class="n">
+        <div class="avatar sm">bc</div>
+        <div>
+          <div class="name">@basedchad <span class="id">◇ ID</span></div>
+          <div class="name joined">joined day 06 · YOU</div>
+        </div>
+      </div>
+      <div class="vol">$884K</div>
+      <div class="pts">88,420</div>
+      <div class="alloc">1.05%<span class="of">≈ 263K $BLINQ</span></div>
+      <div class="t">▲ 12.4</div>
+    </div>
+    <div class="board-row">
+      <span class="r">08</span>
+      <div class="n">
+        <div class="avatar sm">om</div>
+        <div>
+          <div class="name">@onchainmaxi <span class="id">◇ ID</span></div>
+          <div class="name joined">joined day 08</div>
+        </div>
+      </div>
+      <div class="vol">$810K</div>
+      <div class="pts">81,002</div>
+      <div class="alloc">0.96%<span class="of">≈ 240K $BLINQ</span></div>
+      <div class="t">▲ 0.3</div>
+    </div>
+    <div class="board-row">
+      <span class="r">09</span>
+      <div class="n">
+        <div class="avatar sm">ee</div>
+        <div>
+          <div class="name">0xee44…0d12</div>
+          <div class="name joined">joined day 14</div>
+        </div>
+      </div>
+      <div class="vol">$742K</div>
+      <div class="pts">74,210</div>
+      <div class="alloc">0.88%<span class="of">≈ 220K $BLINQ</span></div>
+      <div class="t down">▼ 0.6</div>
+    </div>
+    <div class="board-row">
+      <span class="r">10</span>
+      <div class="n">
+        <div class="avatar sm">dt</div>
+        <div>
+          <div class="name">@degentemporal <span class="id">◇ ID</span></div>
+          <div class="name joined">joined day 09</div>
+        </div>
+      </div>
+      <div class="vol">$688K</div>
+      <div class="pts">68,820</div>
+      <div class="alloc">0.82%<span class="of">≈ 204K $BLINQ</span></div>
+      <div class="t">▲ 4.0</div>
+    </div>
+    <div class="board-row">
+      <span class="r">11</span>
+      <div class="n">
+        <div class="avatar sm">be</div>
+        <div>
+          <div class="name">@bearishemma</div>
+          <div class="name joined">joined day 12</div>
+        </div>
+      </div>
+      <div class="vol">$601K</div>
+      <div class="pts">60,108</div>
+      <div class="alloc">0.71%<span class="of">≈ 178K $BLINQ</span></div>
+      <div class="t">▲ 0.8</div>
+    </div>
+    <div class="board-row">
+      <span class="r">12</span>
+      <div class="n">
+        <div class="avatar sm">7c</div>
+        <div>
+          <div class="name">0x7c19…a4f0</div>
+          <div class="name joined">joined day 22</div>
+        </div>
+      </div>
+      <div class="vol">$554K</div>
+      <div class="pts">55,402</div>
+      <div class="alloc">0.66%<span class="of">≈ 165K $BLINQ</span></div>
+      <div class="t">▲ 3.1</div>
+    </div>
+
+    <!-- you-could ghost row -->
+    <div class="you-could-row">
+      <span class="r">··</span>
+      <div class="msg">
+        you, after your first qualifying trade
+        <span class="meta">attribution locks on $25+ trade · held 24h+ · pts credit within 30s</span>
+      </div>
+      <button class="btn-cta">get a code →</button>
+    </div>
+
+    <!-- pager -->
+    <div class="pager">
+      <span>showing 1–12 of 52</span>
+      <div class="pages">
+        <button class="on">1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>›</button>
+      </div>
+      <span>updated 14s ago</span>
+    </div>
+  </section>
+
+  <!-- logged-out CTA -->
+  <section class="cta-strip">
+    <div>
+      <h3>Not on the board yet? <em>Get a code.</em></h3>
+      <p>Season 01 is invite-only — 52 of 60 spots claimed. Apply through a current commish or join the waitlist for Season 02. Public access opens at the next snapshot.</p>
+    </div>
+    <div class="actions">
+      <button class="btn-cta">apply via commish →</button>
+      <button class="btn-ghost">join S2 waitlist</button>
+    </div>
+  </section>
+
+  <!-- methodology -->
+  <section class="meth">
+    <h4>// METHODOLOGY</h4>
+    <div class="body">
+      <p>
+        <b>Points</b> = attributed volume × multiplier. Multiplier = 1.0× base,
+        1.2× if identity-bound (Twitter + Gitcoin Passport).
+      </p>
+      <p>
+        <b>Allocation</b> = (your points ÷ total points) × 2.50% × $BLINQ supply.
+        Recalculated every block. Estimates are projected, not final.
+      </p>
+      <p>
+        <b>Sybil sweep</b> runs before TGE snapshot. Discretionary. Flagged
+        accounts hide from public view; appeal channel is the commish DM.
+      </p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div><span style="color:var(--mag);">●</span> blinq · season 01</div>
+    <div class="grow"></div>
+    <a href="surface-3-dashboard.html">/referrals</a>
+    <a href="#">/refer/basedchad</a>
+    <a href="#">terms</a>
+    <a href="#">geo policy</a>
+    <a href="#">sybil rules</a>
+  </footer>
+
+</main>
+
+</body>
+</html>

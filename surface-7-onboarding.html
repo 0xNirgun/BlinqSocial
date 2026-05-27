@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blinq · commish onboarding · welcome @basedchad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="glitch.css" />
+<style>
+  .page-hero { padding: 36px 0 24px; border-bottom: 1px solid var(--line); }
+  .page-hero .eyebrow { margin-bottom: 14px; }
+  .page-hero .h-page { font-size: clamp(32px, 4.5vw, 52px); }
+  .page-hero .sub { margin-top: 16px; font-size: 15px; color: var(--bone-dim); max-width: 64ch; line-height: 1.55; }
+  .page-hero .sub b { color: var(--bone); }
+
+  .seq-grid {
+    padding: 48px 0 32px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+  }
+  @media (max-width: 1180px) { .seq-grid { grid-template-columns: 1fr 1fr; gap: 32px; } }
+  @media (max-width: 640px)  { .seq-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+  .step-col { display: flex; flex-direction: column; }
+  .step-col .step-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px;
+  }
+  .step-col .step-head .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--mag); color: #fff;
+    padding: 3px 7px; letter-spacing: 0.14em; font-weight: 700;
+  }
+  .step-col .step-head h3 {
+    margin: 0; font-size: 14px; color: var(--bone); font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .ob-modal {
+    background: var(--bg-2);
+    border: 1px solid var(--line-3);
+    position: relative;
+    box-shadow: 8px 8px 0 0 var(--line-2);
+  }
+  .ob-modal::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--mag), var(--cyan), var(--lime)); }
+  .ob-modal .head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.12em;
+  }
+  .ob-modal .head .acc { color: var(--mag); }
+  .ob-modal .head .skip {
+    margin-left: auto;
+    color: var(--bone-mute);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .ob-modal .body { padding: 24px 22px; }
+  .ob-modal .progress {
+    padding: 0 18px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ob-modal .progress .pips {
+    display: flex; gap: 6px;
+  }
+  .ob-modal .progress .pip {
+    flex: 1; height: 4px;
+    background: var(--line);
+  }
+  .ob-modal .progress .pip.done { background: var(--lime); }
+  .ob-modal .progress .pip.cur { background: var(--mag); }
+  .ob-modal .progress .meta {
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--bone-mute); letter-spacing: 0.14em;
+    display: flex; justify-content: space-between;
+  }
+
+  .welcome-block {
+    text-align: center;
+    padding: 8px 0 8px;
+  }
+  .welcome-block .av-stack {
+    margin: 0 auto 18px;
+    width: 96px; height: 96px;
+    position: relative;
+  }
+  .welcome-block .av-stack .avatar {
+    width: 96px; height: 96px; font-size: 28px;
+    box-shadow: 8px 8px 0 0 var(--lime);
+  }
+  .welcome-block .av-stack::after {
+    content: "▲";
+    position: absolute; top: -12px; right: -8px;
+    color: var(--lime); font-size: 18px;
+    background: var(--bg-2); padding: 2px 4px;
+  }
+  .welcome-block .h {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--bone); margin: 0 0 6px;
+  }
+  .welcome-block .h .hi { color: var(--mag); }
+  .welcome-block .sub {
+    font-size: 13px; color: var(--bone-dim); margin: 0 0 18px;
+    line-height: 1.55;
+  }
+  .welcome-block .sub b { color: var(--bone); }
+  .welcome-block .meta-row {
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--bone-mute);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;
+    text-align: left;
+    margin-bottom: 18px;
+  }
+  .welcome-block .meta-row b { color: var(--bone); }
+  .welcome-block .meta-row .lime { color: var(--lime); }
+
+  .ob-h {
+    font-size: 22px; font-weight: 700;
+    letter-spacing: -0.02em; color: var(--bone);
+    margin: 0 0 10px;
+  }
+  .ob-h em { color: var(--lime); font-style: normal; }
+  .ob-sub {
+    font-size: 13px; color: var(--bone-dim); margin: 0 0 18px;
+    line-height: 1.6;
+  }
+  .ob-sub b { color: var(--bone); }
+  .ob-sub mark { background: rgba(255,45,138,0.15); color: var(--mag); padding: 1px 5px; font-weight: 600; }
+
+  /* mini dashboard preview (highlighted block) */
+  .preview {
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    padding: 14px;
+    margin: 0 0 18px;
+  }
+  .preview-3 {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .preview-3 .cell {
+    border: 1px solid var(--line-2);
+    background: var(--bg-3);
+    padding: 10px 8px;
+  }
+  .preview-3 .cell.hl {
+    border-color: var(--mag);
+    box-shadow: 0 0 0 1px var(--mag), 0 0 14px rgba(255,45,138,0.3);
+    background: rgba(255,45,138,0.05);
+  }
+  .preview-3 .cell .k { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--bone-mute); letter-spacing: 0.14em; }
+  .preview-3 .cell .v { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; margin-top: 4px; color: var(--bone); letter-spacing: -0.03em; }
+  .preview-3 .cell.hl .v { color: var(--mag); }
+
+  .preview-share {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .preview-share .row {
+    display: grid; grid-template-columns: 18px 1fr auto;
+    gap: 8px; align-items: center;
+    padding: 8px 10px;
+    border: 1px solid var(--line-2);
+    background: var(--bg-3);
+  }
+  .preview-share .row.hl {
+    border-color: var(--mag);
+    box-shadow: 0 0 0 1px var(--mag), 0 0 14px rgba(255,45,138,0.3);
+    background: rgba(255,45,138,0.05);
+  }
+  .preview-share .row .ic { color: var(--mag); font-size: 10px; }
+  .preview-share .row .q { font-size: 10px; color: var(--bone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .preview-share .row .y { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--lime); font-weight: 700; }
+  .preview-share .row.hl .copy-pulse {
+    display: inline-block; margin-left: 4px;
+    background: var(--mag); color: #fff; font-size: 8px;
+    padding: 1px 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  }
+
+  .preview-perf {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .preview-perf .ph {
+    display: grid; grid-template-columns: 1fr 30px 50px;
+    gap: 6px; align-items: center;
+    padding: 5px 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--bone-mute); letter-spacing: 0.12em;
+    border-bottom: 1px solid var(--line);
+  }
+  .preview-perf .row {
+    display: grid; grid-template-columns: 1fr 30px 50px;
+    gap: 6px; align-items: center;
+    padding: 6px 6px;
+    border: 1px solid transparent;
+  }
+  .preview-perf .row.hl {
+    border-color: var(--mag);
+    background: rgba(255,45,138,0.05);
+    box-shadow: 0 0 0 1px var(--mag);
+  }
+  .preview-perf .row .q { font-size: 10px; color: var(--bone); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .preview-perf .row .c { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--bone-dim); text-align: right; }
+  .preview-perf .row .pts { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--lime); font-weight: 700; text-align: right; }
+
+  .ob-modal .foot {
+    padding: 12px 18px;
+    border-top: 1px solid var(--line);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .ob-modal .foot .btn-cta {
+    padding: 12px 16px; font-size: 13px;
+    flex: 1; justify-content: center;
+  }
+  .ob-modal .foot .btn-ghost {
+    padding: 12px 12px; font-size: 11px;
+  }
+
+  /* checklist */
+  .ob-check {
+    list-style: none; margin: 0 0 16px; padding: 0;
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+  }
+  .ob-check li {
+    display: grid; grid-template-columns: 22px 1fr;
+    gap: 10px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--bone-dim);
+  }
+  .ob-check li:first-child { border-top: 0; }
+  .ob-check li .check {
+    width: 18px; height: 18px;
+    border: 1px solid var(--lime);
+    display: grid; place-items: center;
+    color: var(--lime); font-size: 11px;
+  }
+  .ob-check li b { color: var(--bone); }
+
+  /* dismissable note at bottom */
+  .ob-note {
+    margin-top: 36px;
+    padding: 22px 24px;
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+    display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
+  }
+  .ob-note h4 { margin: 0; font-size: 16px; color: var(--bone); font-weight: 600; letter-spacing: -0.01em; }
+  .ob-note p { margin: 4px 0 0; font-size: 13px; color: var(--bone-dim); max-width: 60ch; line-height: 1.55; }
+  .ob-note .ms { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bone-mute); letter-spacing: 0.12em; }
+
+  /* trigger spec */
+  .trigger-spec {
+    margin-top: 32px;
+    padding: 28px;
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+    position: relative;
+  }
+  .trigger-spec::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--mag), var(--lime)); }
+  .trigger-spec h3 { margin: 0 0 14px; font-size: 18px; color: var(--bone); letter-spacing: -0.01em; }
+  .trigger-spec dl {
+    display: grid; grid-template-columns: 180px 1fr;
+    gap: 12px 24px;
+    margin: 0;
+  }
+  .trigger-spec dt { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--mag); letter-spacing: 0.06em; }
+  .trigger-spec dd { margin: 0; font-size: 13px; color: var(--bone-dim); line-height: 1.55; }
+  .trigger-spec dd b { color: var(--bone); }
+  .trigger-spec dd code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--lime); }
+  @media (max-width: 720px) { .trigger-spec dl { grid-template-columns: 1fr; gap: 4px 0; } .trigger-spec dt { margin-top: 12px; } }
+</style>
+</head>
+<body>
+
+<!-- topbar -->
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="b">blinq</span><span class="dot">.</span></div>
+    <div class="crumbs"><span class="seg">/</span> <span class="cur">commish onboarding</span></div>
+    <div class="topbar-right">
+      <span class="pill mag">design review · 4 steps</span>
+      <span class="pill compact-hide">first dashboard load</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap-wide">
+
+  <section class="page-hero">
+    <div class="eyebrow">// SURFACE 07 · COMMISH ONBOARDING</div>
+    <h1 class="h-page">First time logging in. <em>Show them what they've got.</em></h1>
+    <p class="sub">
+      One-time modal flow that mounts over the dashboard on a curated commish's <b>first</b>
+      authenticated visit. Personal welcome, then 3 targeted walkthrough steps with
+      <b>highlighted dashboard regions</b>. Dismissable after the first complete share,
+      not before.
+    </p>
+  </section>
+
+  <section class="seq-grid">
+
+    <!-- STEP 0 — welcome -->
+    <div class="step-col">
+      <div class="step-head">
+        <span class="num">00</span>
+        <h3>Personal welcome</h3>
+      </div>
+      <div class="ob-modal">
+        <div class="head">
+          <span>WELCOME</span>
+          <span class="acc">· S01</span>
+          <span class="skip">skip tour</span>
+        </div>
+        <div class="progress">
+          <div class="pips">
+            <span class="pip cur"></span>
+            <span class="pip"></span>
+            <span class="pip"></span>
+            <span class="pip"></span>
+          </div>
+          <div class="meta"><span>STEP 1 / 4</span><span>~ 45 SEC</span></div>
+        </div>
+        <div class="body welcome-block">
+          <div class="av-stack"><div class="avatar lg">bc</div></div>
+          <h4 class="h"><span class="hi">welcome,</span> @basedchad.</h4>
+          <p class="sub">You're <b>commish #51</b> of Season 01 — selected for your prediction-market track record and your audience on 𝕏.</p>
+          <div class="meta-row">
+            <span>SEASON<br/><b>01 · DAY 37</b></span>
+            <span>YOUR SLOT<br/><b>#51 / 60</b></span>
+            <span>POOL<br/><b class="lime">2.50% $BLINQ</b></span>
+            <span>DURATION<br/><b>90 DAYS</b></span>
+          </div>
+        </div>
+        <div class="foot">
+          <button class="btn-cta">show me around →</button>
+          <button class="btn-ghost">skip</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1 — dashboard -->
+    <div class="step-col">
+      <div class="step-head">
+        <span class="num">01</span>
+        <h3>Here's your dashboard</h3>
+      </div>
+      <div class="ob-modal">
+        <div class="head">
+          <span>STEP 01</span>
+          <span class="acc">· DASHBOARD</span>
+          <span class="skip">skip tour</span>
+        </div>
+        <div class="progress">
+          <div class="pips">
+            <span class="pip done"></span>
+            <span class="pip cur"></span>
+            <span class="pip"></span>
+            <span class="pip"></span>
+          </div>
+          <div class="meta"><span>STEP 2 / 4</span><span>~ 30 SEC</span></div>
+        </div>
+        <div class="body">
+          <h4 class="ob-h">Three numbers <em>to watch.</em></h4>
+          <p class="ob-sub">Your <b>points</b>, your <b>rank</b>, and your <b>projected $BLINQ allocation</b>. These three update every block. Rank changes drive the leaderboard climb — that's how you know your shares are working.</p>
+
+          <div class="preview">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bone-mute);letter-spacing:0.14em;margin-bottom:6px;">// DASHBOARD HERO</div>
+            <div class="preview-3">
+              <div class="cell hl"><div class="k">POINTS</div><div class="v">0</div></div>
+              <div class="cell hl"><div class="k">RANK</div><div class="v">—</div></div>
+              <div class="cell hl"><div class="k">ALLOC</div><div class="v">0%</div></div>
+            </div>
+            <div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mag);letter-spacing:0.14em;">▲ HIGHLIGHTED ON LIVE DASHBOARD</div>
+          </div>
+
+          <ul class="ob-check">
+            <li><span class="check">●</span><span><b>Rank locks</b> within 24h of your first qualifying referral. Until then it shows <code>—</code>.</span></li>
+            <li><span class="check">●</span><span><b>Allocation</b> is projected, pro-rata against the pool. Updates every block.</span></li>
+          </ul>
+        </div>
+        <div class="foot">
+          <button class="btn-ghost">← back</button>
+          <button class="btn-cta">next · share toolkit →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 — share toolkit -->
+    <div class="step-col">
+      <div class="step-head">
+        <span class="num">02</span>
+        <h3>Here's how to share</h3>
+      </div>
+      <div class="ob-modal">
+        <div class="head">
+          <span>STEP 02</span>
+          <span class="acc">· SHARE TOOLKIT</span>
+          <span class="skip">skip tour</span>
+        </div>
+        <div class="progress">
+          <div class="pips">
+            <span class="pip done"></span>
+            <span class="pip done"></span>
+            <span class="pip cur"></span>
+            <span class="pip"></span>
+          </div>
+          <div class="meta"><span>STEP 3 / 4</span><span>~ 30 SEC</span></div>
+        </div>
+        <div class="body">
+          <h4 class="ob-h">One click <em>to share a market.</em></h4>
+          <p class="ob-sub">Pick any active market, hit <mark>copy link</mark> for a personalized URL, or jump straight to <b>𝕏 · Telegram · WhatsApp</b>. Every link carries your commish ID — every trade routes back to you.</p>
+
+          <div class="preview">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bone-mute);letter-spacing:0.14em;margin-bottom:6px;">// SHARE TOOLKIT · 5 LIVE MARKETS</div>
+            <div class="preview-share">
+              <div class="row hl">
+                <span class="ic">⚽</span>
+                <span class="q">Argentina to repeat WC champion <span class="copy-pulse">CLICK</span></span>
+                <span class="y">24¢</span>
+              </div>
+              <div class="row">
+                <span class="ic">⚽</span>
+                <span class="q">Brazil to reach final</span>
+                <span class="y">41¢</span>
+              </div>
+              <div class="row">
+                <span class="ic">⚽</span>
+                <span class="q">Final decided in penalties</span>
+                <span class="y">31¢</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="ob-sub" style="margin-bottom:0;font-size:12px;">
+            <b>Pro tip:</b> add 1–2 lines of commentary before you share. Markets with curator notes convert <b>2.3× higher</b>.
+          </p>
+        </div>
+        <div class="foot">
+          <button class="btn-ghost">← back</button>
+          <button class="btn-cta">next · performance →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 — per-market -->
+    <div class="step-col">
+      <div class="step-head">
+        <span class="num">03</span>
+        <h3>Here's where to track</h3>
+      </div>
+      <div class="ob-modal">
+        <div class="head">
+          <span>STEP 03</span>
+          <span class="acc">· PERFORMANCE</span>
+          <span class="skip">skip tour</span>
+        </div>
+        <div class="progress">
+          <div class="pips">
+            <span class="pip done"></span>
+            <span class="pip done"></span>
+            <span class="pip done"></span>
+            <span class="pip cur"></span>
+          </div>
+          <div class="meta"><span>STEP 4 / 4</span><span>FINAL</span></div>
+        </div>
+        <div class="body">
+          <h4 class="ob-h">See <em>what's working.</em></h4>
+          <p class="ob-sub">Per-market widget shows <b>clicks → volume → points → conversion</b> for every link you've shared. Use it to figure out which markets your audience trades, then double-down.</p>
+
+          <div class="preview">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--bone-mute);letter-spacing:0.14em;margin-bottom:6px;">// PER-MARKET PERFORMANCE</div>
+            <div class="preview-perf">
+              <div class="ph"><span>MARKET</span><span style="text-align:right">CLK</span><span style="text-align:right">PTS</span></div>
+              <div class="row hl">
+                <span class="q">Argentina repeat</span>
+                <span class="c">412</span>
+                <span class="pts">42K</span>
+              </div>
+              <div class="row">
+                <span class="q">Brazil final</span>
+                <span class="c">281</span>
+                <span class="pts">23K</span>
+              </div>
+              <div class="row">
+                <span class="q">Final penalties</span>
+                <span class="c">194</span>
+                <span class="pts">12K</span>
+              </div>
+            </div>
+          </div>
+
+          <ul class="ob-check">
+            <li><span class="check">●</span><span>Sort by <b>conversion</b> to find your best-performing surfaces.</span></li>
+            <li><span class="check">●</span><span><b>Discovery vs. curation</b> split lower on the dashboard shows where your earnings come from.</span></li>
+          </ul>
+        </div>
+        <div class="foot">
+          <button class="btn-ghost">← back</button>
+          <button class="btn-cta">share my first market →</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- dismiss note -->
+  <section class="ob-note">
+    <div>
+      <h4>Dismissable after the first complete share.</h4>
+      <p>The flow can be re-opened from the dashboard kebab menu. We don't lock progress — a commish who skips early can pull the tour back up any time.</p>
+    </div>
+    <div class="ms">DISMISS RULE · /referrals?tour=done</div>
+  </section>
+
+  <!-- trigger spec -->
+  <section class="trigger-spec">
+    <h3>Trigger spec</h3>
+    <dl>
+      <dt>FIRES WHEN</dt>
+      <dd>A curated commish hits <code>/referrals</code> for the first time after their wallet is bound. Auth state + <code>seen_tour=false</code> on user record.</dd>
+
+      <dt>STORAGE</dt>
+      <dd>User record: <code>seen_tour</code>, <code>tour_completed_at</code>, <code>tour_step</code>. Resumes mid-step if they close before step 04.</dd>
+
+      <dt>DISMISS RULE</dt>
+      <dd>"X" sets <code>seen_tour=true</code> but leaves a CTA in the dashboard kebab. Auto-completes only after <b>first share + first qualifying trade attributed</b>.</dd>
+
+      <dt>EDGE</dt>
+      <dd>If the commish was somehow attributed as a referee elsewhere, the welcome modal degrades to a single-step "you're attributed AND a commish — here's both surfaces" view (not designed in v0).</dd>
+
+      <dt>MOBILE</dt>
+      <dd>Steps stack full-bleed. Highlighted dashboard regions still render below the modal but full-screen. Swipe → → → between steps. Same dismiss rule.</dd>
+    </dl>
+  </section>
+
+  <footer class="foot">
+    <div><span style="color:var(--mag);">●</span> blinq · season 01 · surface 07 / 07</div>
+    <div class="grow"></div>
+    <a href="surface-3-dashboard.html">/referrals</a>
+    <a href="surface-4-leaderboard.html">/leaderboard</a>
+    <a href="surface-5-wallet-connect.html">/connect</a>
+    <a href="surface-6-post-trade.html">/post-trade</a>
+  </footer>
+
+</main>
+
+</body>
+</html>

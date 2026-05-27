@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blinq · post-trade return</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="glitch.css" />
+<style>
+  .page-hero { padding: 36px 0 24px; border-bottom: 1px solid var(--line); }
+  .page-hero .eyebrow { margin-bottom: 14px; }
+  .page-hero .h-page { font-size: clamp(32px, 4.5vw, 52px); }
+  .page-hero .sub { margin-top: 16px; font-size: 15px; color: var(--bone-dim); max-width: 64ch; line-height: 1.55; }
+  .page-hero .sub b { color: var(--bone); }
+
+  .state-grid {
+    padding: 48px 0 64px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px 28px;
+  }
+  @media (max-width: 1100px) { .state-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+  .state .state-meta {
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .state .state-meta .lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bone-mute); letter-spacing: 0.14em; }
+  .state .state-meta h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--bone); letter-spacing: -0.01em; }
+  .state .state-meta .badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 7px; letter-spacing: 0.14em; font-weight: 700; }
+  .state .state-meta .badge.first { background: var(--lime); color: #0a0a0c; }
+  .state .state-meta .badge.return { background: var(--mag); color: #fff; }
+  .state .state-meta .badge.unqualified { background: var(--amber); color: #0a0a0c; }
+
+  .toast {
+    background: var(--bg-2);
+    border: 1px solid var(--line-3);
+    position: relative;
+    box-shadow: 8px 8px 0 0 var(--line-2);
+  }
+  .toast::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--mag), var(--cyan), var(--lime)); }
+  .toast .head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.12em;
+  }
+  .toast .head .acc { color: var(--mag); }
+  .toast .head .close { width: 26px; height: 26px; display: grid; place-items: center; color: var(--bone-mute); border: 1px solid var(--line-2); }
+  .toast .body { padding: 24px 22px; }
+  .toast .foot { padding: 14px 18px; border-top: 1px solid var(--line); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bone-mute); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  /* tracking pulse */
+  .pulse-row {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 22px;
+  }
+  .pulse {
+    width: 52px; height: 52px;
+    border: 2px solid var(--lime);
+    display: grid; place-items: center;
+    color: var(--lime); font-size: 22px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pulse::before {
+    content: ""; position: absolute; inset: -6px;
+    border: 1px solid var(--lime);
+    opacity: 0.4;
+    animation: ping 1.8s ease-out infinite;
+  }
+  @keyframes ping { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.25); } }
+  .pulse-row .meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bone-mute); letter-spacing: 0.06em; }
+  .pulse-row .meta b { color: var(--lime); display: block; font-size: 14px; letter-spacing: -0.01em; margin-bottom: 4px; }
+
+  .h-toast { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--bone); margin: 0 0 8px; }
+  .sub-toast { font-size: 14px; color: var(--bone-dim); margin: 0 0 18px; line-height: 1.55; }
+  .sub-toast mark { background: rgba(196,255,77,0.15); color: var(--lime); padding: 1px 5px; font-weight: 600; }
+  .sub-toast b { color: var(--bone); }
+
+  /* timeline */
+  .timeline {
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+  .timeline .step {
+    display: grid; grid-template-columns: 18px 1fr auto;
+    gap: 12px; align-items: center;
+    padding: 6px 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .timeline .step .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--line);
+    position: relative;
+  }
+  .timeline .step.done .dot { background: var(--lime); box-shadow: 0 0 6px rgba(196,255,77,0.6); }
+  .timeline .step.cur .dot { background: var(--mag); box-shadow: 0 0 6px rgba(255,45,138,0.6); animation: blink 1.2s steps(2) infinite; }
+  .timeline .step .lbl { color: var(--bone-dim); }
+  .timeline .step.done .lbl, .timeline .step.cur .lbl { color: var(--bone); }
+  .timeline .step .meta { color: var(--bone-mute); font-size: 11px; }
+  .timeline .step.cur .meta { color: var(--mag); }
+
+  /* points line */
+  .pts-line {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 18px 0 12px;
+    border-bottom: 1px dashed var(--line-2);
+    margin-bottom: 18px;
+  }
+  .pts-line .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 44px; font-weight: 700;
+    color: var(--lime); letter-spacing: -0.04em; line-height: 1;
+  }
+  .pts-line .lbl { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--bone-mute); letter-spacing: 0.12em; }
+  .pts-line .delta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--lime); margin-left: auto; }
+
+  /* share pivot block */
+  .pivot {
+    border: 1px solid var(--mag);
+    background: linear-gradient(135deg, rgba(255,45,138,0.06), rgba(196,255,77,0.03));
+    padding: 16px 18px;
+    margin: 18px -2px -2px;
+    position: relative;
+  }
+  .pivot::before {
+    content: "PIVOT";
+    position: absolute; top: -10px; left: 12px;
+    background: var(--mag); color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; padding: 2px 6px; letter-spacing: 0.18em;
+  }
+  .pivot .pivot-h {
+    font-size: 15px; font-weight: 600; color: var(--bone); margin: 0 0 6px; letter-spacing: -0.01em;
+  }
+  .pivot .pivot-h em { color: var(--lime); font-style: normal; }
+  .pivot .pivot-sub { font-size: 12px; color: var(--bone-dim); margin: 0 0 12px; line-height: 1.5; }
+  .pivot .link-row {
+    display: flex; gap: 0;
+    margin-bottom: 10px;
+  }
+  .pivot .link-row .url {
+    flex: 1; min-width: 0;
+    background: var(--bg);
+    border: 1px solid var(--line-2);
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--mag);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: flex; align-items: center;
+  }
+  .pivot .link-row .copy-btn {
+    background: var(--mag); color: #fff;
+    padding: 0 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    border: 1px solid var(--mag);
+    letter-spacing: 0.08em;
+  }
+  .pivot .socials { display: flex; gap: 6px; }
+  .pivot .socials .b {
+    flex: 1; padding: 8px;
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-dim);
+    text-align: center;
+  }
+  .pivot .socials .b:hover { color: var(--bone); border-color: var(--bone); }
+
+  /* unqualified state */
+  .warn-glyph {
+    width: 52px; height: 52px;
+    border: 2px solid var(--amber);
+    display: grid; place-items: center;
+    color: var(--amber); font-size: 22px;
+    margin-bottom: 18px;
+  }
+  .unq-stats {
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px;
+  }
+  .unq-stats .ln { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bone-mute); letter-spacing: 0.06em; }
+  .unq-stats .ln b { display: block; font-size: 13px; color: var(--bone); margin-top: 2px; }
+  .unq-stats .ln.err b { color: var(--amber); }
+
+  .unq-tips {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    background: rgba(255,184,77,0.05);
+    border-left: 2px solid var(--amber);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-dim); line-height: 1.6;
+  }
+  .unq-tips b { color: var(--amber); }
+
+  .actions {
+    display: flex; gap: 8px;
+  }
+  .actions .btn { flex: 1; }
+  .actions .btn-cta { padding: 14px 16px; font-size: 13px; justify-content: center; flex: 1; }
+  .actions .btn-ghost { padding: 14px 12px; font-size: 12px; text-align: center; flex: 0 0 auto; }
+
+  /* compare strip below */
+  .compare {
+    margin-top: 40px;
+    padding: 32px 28px;
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+    position: relative;
+  }
+  .compare::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--mag), var(--lime)); }
+  .compare h3 { margin: 0 0 18px; font-size: 20px; color: var(--bone); letter-spacing: -0.01em; }
+  .compare ul { margin: 0; padding: 0; list-style: none; }
+  .compare li {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    font-size: 13px; color: var(--bone-dim);
+  }
+  .compare li:first-child { border-top: 0; }
+  .compare li b { color: var(--bone); }
+  .compare li code { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--lime); }
+  @media (max-width: 640px) { .compare li { grid-template-columns: 1fr; gap: 4px; } }
+</style>
+</head>
+<body>
+
+<!-- topbar -->
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="b">blinq</span><span class="dot">.</span></div>
+    <div class="crumbs"><span class="seg">/</span> <span class="cur">post-trade return</span></div>
+    <div class="topbar-right">
+      <span class="pill mag">design review · 3 states</span>
+      <span class="pill compact-hide">modal overlay</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap-wide">
+
+  <section class="page-hero">
+    <div class="eyebrow">// SURFACE 06 · POST-TRADE RETURN</div>
+    <h1 class="h-page">Welcome back. <em>Tracking your trade.</em></h1>
+    <p class="sub">
+      User returns to the Blinq tab after trading on Polymarket. We confirm the attribution,
+      set expectations on points timing, then pivot them to <b>sharing</b>.
+      Different variants for first-time return, returning user, and trades that didn't clear the $25 threshold.
+    </p>
+  </section>
+
+  <section class="state-grid">
+
+    <!-- STATE 1 — first-time return -->
+    <div class="state">
+      <div class="state-meta">
+        <span class="lbl">01</span>
+        <h3>First-time return</h3>
+        <span class="badge first">FIRST</span>
+      </div>
+      <div class="toast">
+        <div class="head">
+          <span>TRACKING</span>
+          <span class="acc">· FIRST TRADE</span>
+          <span style="margin-left:auto"></span>
+          <button class="close">✕</button>
+        </div>
+        <div class="body">
+          <div class="pulse-row">
+            <div class="pulse">◇</div>
+            <div class="meta">
+              <b>Tracking your trade</b>
+              YES · Argentina to repeat · $420 · held 24h timer running
+            </div>
+          </div>
+
+          <h4 class="h-toast">First trade locked in.</h4>
+          <p class="sub-toast">Attribution to <mark>@basedchad</mark> is confirmed. Points credit <b>when this trade clears the 24h hold</b> — usually under 30 seconds after the timer ends. We'll email you when it lands.</p>
+
+          <div class="timeline">
+            <div class="step done">
+              <span class="dot"></span>
+              <span class="lbl">trade detected on chain</span>
+              <span class="meta">2s ago</span>
+            </div>
+            <div class="step done">
+              <span class="dot"></span>
+              <span class="lbl">attribution to @basedchad</span>
+              <span class="meta">2s ago</span>
+            </div>
+            <div class="step cur">
+              <span class="dot"></span>
+              <span class="lbl">24h hold timer</span>
+              <span class="meta">23h 58m left</span>
+            </div>
+            <div class="step">
+              <span class="dot"></span>
+              <span class="lbl">points credit</span>
+              <span class="meta">est. +42 pts</span>
+            </div>
+          </div>
+
+          <div class="pivot">
+            <div class="pivot-h">Refer a friend, <em>get 1.5× on week-1 volume.</em></div>
+            <div class="pivot-sub">You're now a referee — share your own link and bump your multiplier for the first week. Stacks with identity-bound 1.2×.</div>
+            <div class="link-row">
+              <div class="url">blinq.fi/refer/0xa7f1·9be3</div>
+              <button class="copy-btn">COPY</button>
+            </div>
+            <div class="socials">
+              <button class="b">𝕏 twitter</button>
+              <button class="b">✈ telegram</button>
+              <button class="b">● whatsapp</button>
+            </div>
+          </div>
+        </div>
+        <div class="foot">
+          <span style="color:var(--lime)">●</span>
+          <span>EMAIL ALERT QUEUED · WE'LL PING WHEN POINTS LAND</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE 2 — returning user (qualified, cumulative) -->
+    <div class="state">
+      <div class="state-meta">
+        <span class="lbl">02</span>
+        <h3>Returning user · trade qualified</h3>
+        <span class="badge return">CUMULATIVE</span>
+      </div>
+      <div class="toast">
+        <div class="head">
+          <span>TRADE LOGGED</span>
+          <span class="acc">· #14 SEASON</span>
+          <span style="margin-left:auto"></span>
+          <button class="close">✕</button>
+        </div>
+        <div class="body">
+          <div class="pulse-row">
+            <div class="pulse">◇</div>
+            <div class="meta">
+              <b>Trade tracked · qualifying</b>
+              NO · Brazil to final · $1,200 · cleared 24h ✓
+            </div>
+          </div>
+
+          <h4 class="h-toast">Nice. That's +124 points.</h4>
+          <p class="sub-toast">14th qualifying trade this season. <b>@basedchad</b> earns 50% on curation credit — they're sitting at rank #07 with a 12.4% climb last 24h thanks to refs like you.</p>
+
+          <div class="pts-line">
+            <div class="lbl">YOUR<br/>SEASON</div>
+            <div class="v">2,148</div>
+            <div class="delta">▲ +124 just now</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bone-mute);margin-bottom:6px;">
+            <div>
+              <div style="letter-spacing:0.12em;">EST. ALLOC</div>
+              <div style="font-size:18px;color:var(--mag);font-weight:700;margin-top:4px;letter-spacing:-0.02em;">0.026%</div>
+              <div>≈ 6,500 $BLINQ</div>
+            </div>
+            <div>
+              <div style="letter-spacing:0.12em;">VS LAST WEEK</div>
+              <div style="font-size:18px;color:var(--lime);font-weight:700;margin-top:4px;letter-spacing:-0.02em;">▲ 41%</div>
+              <div>+618 pts</div>
+            </div>
+          </div>
+
+          <div class="pivot">
+            <div class="pivot-h">You've earned <em>54 referee multiplier days</em>.</div>
+            <div class="pivot-sub">Share now and bring more friends — your downstream volume counts toward both you AND @basedchad until S1 snapshot.</div>
+            <div class="link-row">
+              <div class="url">blinq.fi/m/argentina-repeat?c=0xa7f1·9be3</div>
+              <button class="copy-btn">COPY</button>
+            </div>
+            <div class="socials">
+              <button class="b">𝕏 share</button>
+              <button class="b">✈ share</button>
+              <button class="b">● share</button>
+            </div>
+          </div>
+        </div>
+        <div class="foot">
+          <span style="color:var(--mag)">●</span>
+          <span>SNAPSHOT IN 53 DAYS · KEEP STACKING</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE 3 — trade didn't qualify -->
+    <div class="state">
+      <div class="state-meta">
+        <span class="lbl">03</span>
+        <h3>Trade didn't qualify</h3>
+        <span class="badge unqualified">SUB-THRESHOLD</span>
+      </div>
+      <div class="toast">
+        <div class="head">
+          <span>NOT QUALIFYING</span>
+          <span class="acc">· INFO ONLY</span>
+          <span style="margin-left:auto"></span>
+          <button class="close">✕</button>
+        </div>
+        <div class="body">
+          <div class="warn-glyph">⚠</div>
+          <h4 class="h-toast">Trade saw, points didn't drop.</h4>
+          <p class="sub-toast">Your trade was <b>under the $25 threshold</b> for point credit. Attribution is still locked to <b>@basedchad</b>, and the trade is tracked — it just doesn't accrue points by itself.</p>
+
+          <div class="unq-stats">
+            <div class="ln">TRADE<br/><b>YES · 24¢</b></div>
+            <div class="ln">SIZE<br/><b>$18.40</b></div>
+            <div class="ln err">QUALIFYING<br/><b>$25.00 MIN</b></div>
+            <div class="ln err">SHORT<br/><b>$6.60 BELOW</b></div>
+          </div>
+
+          <div class="unq-tips">
+            <b>TWO PATHS FORWARD</b><br/>
+            · Add ~$7 to this position or open a new one ≥ $25, held 24h<br/>
+            · Or stack smaller trades — only the qualifying ones earn pts, but attribution holds
+          </div>
+
+          <div class="actions">
+            <button class="btn-cta">trade more →</button>
+            <button class="btn-ghost">later</button>
+          </div>
+        </div>
+        <div class="foot">
+          <span style="color:var(--amber)">●</span>
+          <span>QUALIFYING TRADE = ≥ $25 · HELD 24H · 1.0× OR 1.2× MULTIPLIER</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- specs / variants -->
+  <section class="compare">
+    <h3>State spec · what changes between variants</h3>
+    <ul>
+      <li><b>First-time return</b><span>Pulse animation, timeline showing 24h hold, "first trade locked in" hero. Pivot to <em>self-share for 1.5× week-1 bonus</em>. Email queue confirmation in the footer.</span></li>
+      <li><b>Returning user</b><span>Cumulative points readout with delta. Comparison to last week. Pivot focuses on bringing more friends. Footer counts down to snapshot.</span></li>
+      <li><b>Trade didn't qualify</b><span>Amber warning glyph, no points number. Honest explainer that attribution holds but points need ≥ $25. Two-path tip box. Footer reiterates the rule.</span></li>
+      <li><b>Trigger</b><span><code>blinq.fi</code> tab regains focus after Polymarket trade callback fires. Modal mounts over current page (dashboard, leaderboard, or original landing).</span></li>
+    </ul>
+  </section>
+
+  <footer class="foot">
+    <div><span style="color:var(--mag);">●</span> blinq · season 01 · surface 06 / 07</div>
+    <div class="grow"></div>
+    <a href="surface-3-dashboard.html">/referrals</a>
+    <a href="surface-4-leaderboard.html">/leaderboard</a>
+    <a href="surface-5-wallet-connect.html">/connect</a>
+    <a href="surface-7-onboarding.html">/onboarding</a>
+  </footer>
+
+</main>
+
+</body>
+</html>

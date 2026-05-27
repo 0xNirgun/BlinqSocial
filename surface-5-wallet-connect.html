@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blinq · wallet connect · privy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="glitch.css" />
+<style>
+  /* page is a state showcase — laid out as a grid of modal variants */
+  .page-hero {
+    padding: 36px 0 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-hero .eyebrow { margin-bottom: 14px; }
+  .page-hero .h-page { font-size: clamp(32px, 4.5vw, 52px); }
+  .page-hero .sub {
+    margin-top: 16px;
+    font-size: 15px; color: var(--bone-dim); max-width: 64ch;
+    line-height: 1.55;
+  }
+  .page-hero .sub b { color: var(--bone); }
+
+  .privy-note {
+    margin-top: 22px;
+    display: inline-flex; gap: 12px; align-items: center;
+    padding: 10px 14px;
+    border: 1px solid var(--line-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-dim);
+    letter-spacing: 0.06em;
+  }
+  .privy-note .ic { color: var(--mag); }
+
+  /* state grid */
+  .state-grid {
+    padding: 48px 0 64px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 28px;
+  }
+  @media (max-width: 900px) { .state-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+  .state {
+    display: flex; flex-direction: column;
+  }
+  .state .state-meta {
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .state .state-meta .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.14em;
+  }
+  .state .state-meta h3 {
+    margin: 0; font-size: 16px; font-weight: 600; color: var(--bone);
+    letter-spacing: -0.01em;
+  }
+  .state .state-meta .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; padding: 3px 7px;
+    letter-spacing: 0.14em; font-weight: 700;
+  }
+  .state .state-meta .badge.default { background: var(--lime); color: #0a0a0c; }
+  .state .state-meta .badge.success { background: var(--lime); color: #0a0a0c; }
+  .state .state-meta .badge.error { background: var(--mag); color: #fff; }
+  .state .state-meta .badge.warn { background: var(--amber); color: #0a0a0c; }
+
+  /* the modal — embedded inline (no overlay) */
+  .modal-inline {
+    background: var(--bg-2);
+    border: 1px solid var(--line-3);
+    position: relative;
+    box-shadow: 8px 8px 0 0 var(--line-2);
+  }
+  .modal-inline::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--mag), var(--cyan), var(--lime));
+  }
+  .modal-inline .head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.12em;
+  }
+  .modal-inline .head .l { display: flex; align-items: center; gap: 10px; }
+  .modal-inline .head .acc { color: var(--mag); }
+  .modal-inline .head .close {
+    width: 26px; height: 26px;
+    display: grid; place-items: center;
+    color: var(--bone-mute); border: 1px solid var(--line-2);
+    cursor: pointer;
+  }
+  .modal-inline .body { padding: 26px 24px; }
+  .modal-inline .foot {
+    padding: 14px 20px;
+    border-top: 1px solid var(--line);
+    display: flex; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute);
+    align-items: center; flex-wrap: wrap;
+  }
+
+  /* attribution badge inside modal */
+  .attr-strip {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255,45,138,0.06);
+    border: 1px solid rgba(255,45,138,0.2);
+    margin-bottom: 22px;
+  }
+  .attr-strip .who { font-size: 13px; color: var(--bone-dim); }
+  .attr-strip .who b { color: var(--mag); }
+
+  /* email-first form */
+  .auth-h {
+    font-size: 22px; font-weight: 700;
+    letter-spacing: -0.02em; margin: 0 0 8px;
+    color: var(--bone);
+  }
+  .auth-sub {
+    font-size: 13px; color: var(--bone-dim); margin: 0 0 20px; line-height: 1.55;
+  }
+  .auth-input-row {
+    display: flex; gap: 0; margin-bottom: 16px;
+  }
+  .auth-input-row .input {
+    flex: 1; min-width: 0;
+    border-right: 0;
+  }
+  .auth-input-row .go {
+    background: var(--mag); color: #fff;
+    border: 1px solid var(--mag);
+    padding: 0 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 700;
+  }
+  .auth-input-row .go:hover { background: #ff4d9e; }
+
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--bone-mute); letter-spacing: 0.18em;
+    margin: 18px 0 16px;
+  }
+  .divider .line { flex: 1; height: 1px; background: var(--line-2); }
+
+  .wallet-list { display: flex; flex-direction: column; gap: 8px; }
+  .wallet-btn {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    transition: all .12s;
+    text-align: left;
+  }
+  .wallet-btn:hover { border-color: var(--line-3); background: var(--bg-3); }
+  .wallet-btn .ico {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; font-weight: 700;
+  }
+  .wallet-btn .ico.mm { background: #f6851b; color: #fff; border-color: #f6851b; }
+  .wallet-btn .ico.wc { background: #3b99fc; color: #fff; border-color: #3b99fc; }
+  .wallet-btn .ico.cb { background: #0052ff; color: #fff; border-color: #0052ff; }
+  .wallet-btn .label {
+    font-size: 14px; color: var(--bone);
+  }
+  .wallet-btn .meta {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute);
+  }
+
+  /* success state */
+  .success-glyph {
+    width: 72px; height: 72px;
+    border: 2px solid var(--lime);
+    display: grid; place-items: center;
+    color: var(--lime);
+    font-size: 32px;
+    margin: 0 auto 22px;
+    box-shadow: 0 0 0 4px rgba(196,255,77,0.1), 0 0 24px rgba(196,255,77,0.2);
+    position: relative;
+  }
+  .success-glyph::after {
+    content: ""; position: absolute; inset: -8px;
+    border: 1px dashed rgba(196,255,77,0.3);
+  }
+  .success-state { text-align: center; }
+  .success-state .h {
+    font-size: 24px; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--bone); margin: 0 0 8px;
+  }
+  .success-state .sub {
+    font-size: 14px; color: var(--bone-dim); margin: 0 0 24px;
+    line-height: 1.55; max-width: 36ch;
+    margin-left: auto; margin-right: auto;
+  }
+  .success-state .sub mark {
+    background: rgba(196,255,77,0.15); color: var(--lime); padding: 1px 5px; font-weight: 600;
+  }
+  .success-state .receipt {
+    text-align: left;
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .success-state .receipt .ln {
+    display: flex; justify-content: space-between;
+    padding: 4px 0;
+    color: var(--bone-dim);
+  }
+  .success-state .receipt .ln b { color: var(--bone); }
+  .success-state .receipt .ln .ok { color: var(--lime); }
+  .success-state .actions { display: flex; gap: 10px; }
+  .success-state .actions .btn-cta { flex: 1; justify-content: center; }
+  .success-state .actions .btn-ghost { padding: 16px 16px; }
+
+  /* error / already-attributed */
+  .err-glyph {
+    width: 64px; height: 64px;
+    border: 2px solid var(--mag);
+    display: grid; place-items: center;
+    color: var(--mag);
+    font-size: 28px;
+    margin: 0 0 18px;
+  }
+  .err-state .h {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--bone); margin: 0 0 8px;
+  }
+  .err-state .sub {
+    font-size: 14px; color: var(--bone-dim); margin: 0 0 20px;
+    line-height: 1.55;
+  }
+  .err-state .sub b { color: var(--bone); }
+  .err-state .sub mark { background: var(--mag); color: #fff; padding: 1px 6px; font-weight: 600; }
+  .err-state .detail-box {
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    padding: 14px 16px;
+    margin: 0 0 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .err-state .detail-box .ln {
+    display: flex; justify-content: space-between;
+    padding: 4px 0;
+    color: var(--bone-dim);
+  }
+  .err-state .detail-box .ln b { color: var(--mag); }
+  .err-state .actions { display: flex; gap: 10px; }
+  .err-state .actions .btn { flex: 1; justify-content: center; display: inline-flex; align-items: center; }
+
+  /* geo-blocked state */
+  .geo-glyph {
+    width: 64px; height: 64px;
+    border: 2px solid var(--amber);
+    display: grid; place-items: center;
+    color: var(--amber);
+    font-size: 28px;
+    margin: 0 0 18px;
+  }
+  .geo-state .h { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--bone); margin: 0 0 8px; }
+  .geo-state .sub { font-size: 14px; color: var(--bone-dim); margin: 0 0 18px; line-height: 1.55; }
+  .geo-state .sub b { color: var(--bone); }
+  .geo-options {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 18px;
+  }
+  .geo-option {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 14px;
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    text-align: left;
+    transition: all .12s;
+  }
+  .geo-option:hover { border-color: var(--line-3); }
+  .geo-option .ico {
+    width: 32px; height: 32px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line-2);
+    color: var(--amber);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .geo-option .name { font-size: 14px; color: var(--bone); }
+  .geo-option .name .meta { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--bone-mute); margin-top: 3px; letter-spacing: 0.06em; }
+  .geo-option .arrow { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: var(--bone-mute); font-size: 12px; }
+  .geo-state .lockmsg {
+    padding: 10px 12px;
+    background: rgba(196,255,77,0.04);
+    border-left: 2px solid var(--lime);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-dim);
+    line-height: 1.5;
+  }
+  .geo-state .lockmsg b { color: var(--lime); }
+
+  /* privy badge */
+  .privy-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--bone-mute); letter-spacing: 0.1em;
+    margin-left: auto;
+  }
+  .privy-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--lime); }
+</style>
+</head>
+<body>
+
+<!-- topbar -->
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="b">blinq</span><span class="dot">.</span></div>
+    <div class="crumbs"><span class="seg">/</span> <span class="cur">connect</span></div>
+    <div class="topbar-right">
+      <span class="pill mag">design review · 4 states</span>
+      <span class="pill compact-hide">privy · powered</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="page-hero">
+    <div class="eyebrow">// SURFACE 05 · WALLET CONNECT</div>
+    <h1 class="h-page">Connect &amp; <em>lock-in attribution.</em></h1>
+    <p class="sub">
+      Privy provides the modal UI — these surfaces are the surrounding context we design.
+      <b>Email leads</b> (works for non-crypto referees); wallet visible but secondary.
+      Attribution to the originating commish locks on the wallet that signs the first transaction.
+    </p>
+    <div class="privy-note">
+      <span class="ic">●</span>
+      MODAL CHROME IS PRIVY-PROVIDED · OUR STYLING IS THE CONTENT, BUTTONS, AND COPY
+    </div>
+  </section>
+
+  <section class="state-grid">
+
+    <!-- STATE 1 — default connect -->
+    <div class="state">
+      <div class="state-meta">
+        <span class="lbl">01</span>
+        <h3>Default · email-first connect</h3>
+        <span class="badge default">DEFAULT</span>
+      </div>
+      <div class="modal-inline">
+        <div class="head">
+          <div class="l"><span>CONNECT</span><span class="acc">· S1 ATTRIBUTION</span></div>
+          <button class="close">✕</button>
+        </div>
+        <div class="body">
+          <div class="attr-strip">
+            <div class="avatar sm">bc</div>
+            <div class="who"><b>@basedchad</b> sent you · attribution locks on your first qualifying trade</div>
+          </div>
+
+          <h4 class="auth-h">Sign in to join season 01.</h4>
+          <p class="auth-sub">Email works. We'll provision a wallet for you — invisible until you want it. Already crypto? Connect what you've got.</p>
+
+          <div class="auth-input-row">
+            <input class="input" type="email" placeholder="you@email" />
+            <button class="go">SEND →</button>
+          </div>
+
+          <div class="divider"><span class="line"></span><span>or wallet</span><span class="line"></span></div>
+
+          <div class="wallet-list">
+            <button class="wallet-btn">
+              <span class="ico mm">M</span>
+              <span class="label">MetaMask</span>
+              <span class="meta">detected</span>
+            </button>
+            <button class="wallet-btn">
+              <span class="ico wc">W</span>
+              <span class="label">WalletConnect</span>
+            </button>
+            <button class="wallet-btn">
+              <span class="ico cb">C</span>
+              <span class="label">Coinbase Wallet</span>
+            </button>
+          </div>
+        </div>
+        <div class="foot">
+          <span class="privy-badge"><span class="dot"></span>SECURED · PRIVY</span>
+          <span style="margin-left:auto;">terms · privacy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE 2 — success attribution confirmation -->
+    <div class="state">
+      <div class="state-meta">
+        <span class="lbl">02</span>
+        <h3>Success · attribution confirmed</h3>
+        <span class="badge success">SUCCESS</span>
+      </div>
+      <div class="modal-inline">
+        <div class="head">
+          <div class="l"><span>WELCOME</span><span class="acc">· S1 LOCKED</span></div>
+          <button class="close">✕</button>
+        </div>
+        <div class="body success-state">
+          <div class="success-glyph">◇</div>
+          <h4 class="h">You're in.</h4>
+          <p class="sub"><mark>@basedchad</mark> is now your home commish — you'll both earn $BLINQ on every qualifying trade you make on Polymarket.</p>
+
+          <div class="receipt">
+            <div class="ln"><span>home commish</span><b>@basedchad</b></div>
+            <div class="ln"><span>wallet</span><b>0xa7f1…9be3</b></div>
+            <div class="ln"><span>email</span><b>you@email</b></div>
+            <div class="ln"><span>multiplier</span><b>1.0× · bind ID for 1.2×</b></div>
+            <div class="ln"><span>status</span><span class="ok">▲ LOCKED</span></div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-cta" style="flex:1;justify-content:center;">trade your first market →</button>
+            <button class="btn-ghost">later</button>
+          </div>
+        </div>
+        <div class="foot">
+          <span>FIRST QUALIFYING TRADE: ≥ $25 · HELD 24H+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE 3 — already attributed -->
+    <div class="state">
+      <div class="state-meta">
+        <span class="lbl">03</span>
+        <h3>Conflict · wallet already attributed</h3>
+        <span class="badge error">ERROR</span>
+      </div>
+      <div class="modal-inline">
+        <div class="head">
+          <div class="l"><span>ALREADY ATTRIBUTED</span><span class="acc">· NO CHANGE</span></div>
+          <button class="close">✕</button>
+        </div>
+        <div class="body err-state">
+          <div class="err-glyph">!</div>
+          <h4 class="h">This wallet has a home commish already.</h4>
+          <p class="sub">You attributed to <mark>@degenmother</mark> on <b>day 14</b>. Attribution is one-way and permanent — we don't silently re-attribute even if you click a new link.</p>
+
+          <div class="detail-box">
+            <div class="ln"><span>wallet</span><b>0xa7f1…9be3</b></div>
+            <div class="ln"><span>current home</span><b>@degenmother</b></div>
+            <div class="ln"><span>attributed</span><span style="color:var(--bone)">day 14 · Apr 27</span></div>
+            <div class="ln"><span>qualifying trades</span><span style="color:var(--bone)">8 · $612 vol</span></div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-cta-mag btn-cta" style="flex:1;justify-content:center;">view your stats →</button>
+            <button class="btn-ghost">use different wallet</button>
+          </div>
+        </div>
+        <div class="foot">
+          <span style="color:var(--amber);">●</span>
+          <span>ATTRIBUTION IS PERMANENT · APPEAL VIA YOUR HOME COMMISH</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE 4 — geo-blocked -->
+    <div class="state">
+      <div class="state-meta">
+        <span class="lbl">04</span>
+        <h3>Geo-blocked · alternate routes</h3>
+        <span class="badge warn">REGION</span>
+      </div>
+      <div class="modal-inline">
+        <div class="head">
+          <div class="l"><span>REGION RESTRICTED</span><span class="acc">· POLYMARKET</span></div>
+          <button class="close">✕</button>
+        </div>
+        <div class="body geo-state">
+          <div class="geo-glyph">⊘</div>
+          <h4 class="h">Polymarket isn't available where you are.</h4>
+          <p class="sub">Your IP resolves to <b>United States</b>. Polymarket is restricted in the US and a handful of other regions. Your attribution to <b>@basedchad</b> still locks for future use.</p>
+
+          <div class="geo-options">
+            <a href="#" class="geo-option">
+              <span class="ico">⬡</span>
+              <div class="name">Limitless · prediction markets<span class="meta">EVM · sybil-resistant · available worldwide</span></div>
+              <span class="arrow">→</span>
+            </a>
+            <a href="#" class="geo-option">
+              <span class="ico">▲</span>
+              <div class="name">Kalshi · CFTC-regulated<span class="meta">US-legal · KYC required · USD</span></div>
+              <span class="arrow">→</span>
+            </a>
+            <a href="#" class="geo-option">
+              <span class="ico">◆</span>
+              <div class="name">Polymarket via VPN<span class="meta">at your own risk · ToS implications</span></div>
+              <span class="arrow">→</span>
+            </a>
+          </div>
+
+          <div class="lockmsg">
+            <b>▲ Your attribution to @basedchad is saved.</b><br/>
+            If you trade Polymarket from an unrestricted region later, points still credit to the right pool.
+          </div>
+        </div>
+        <div class="foot">
+          <span>IP DETECTED · NOT STORED · POSTMARK GAMMA · GEO POLICY</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="foot">
+    <div><span style="color:var(--mag);">●</span> blinq · season 01 · surface 05 / 07</div>
+    <div class="grow"></div>
+    <a href="surface-3-dashboard.html">/referrals</a>
+    <a href="surface-4-leaderboard.html">/leaderboard</a>
+    <a href="#">/refer/basedchad</a>
+    <a href="#">privy docs</a>
+  </footer>
+
+</main>
+
+</body>
+</html>

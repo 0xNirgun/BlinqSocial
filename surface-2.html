@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blinq · @basedchad sent you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #0a0a0c;
+    --bg-2:      #111114;
+    --line:      #1d1d22;
+    --line-2:    #2a2a32;
+    --bone:      #f0ece4;
+    --bone-dim:  #8a857a;
+    --bone-mute: #4a4843;
+    --mag:       #ff2d8a;
+    --cyan:      #00e5ff;
+    --lime:      #c4ff4d;
+    --red:       #ff4242;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--bone); }
+  body {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 15px; line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh; position: relative; overflow-x: hidden;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 99;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; padding: 0; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+  @media (max-width: 600px) { .wrap { padding: 0 18px; } }
+  ::selection { background: var(--mag); color: #fff; }
+
+  /* topbar */
+  .topbar { border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 50; background: rgba(10,10,12,0.85); backdrop-filter: blur(8px); }
+  .topbar-inner { display: flex; align-items: center; gap: 18px; height: 64px; }
+  .logo { font-weight: 700; letter-spacing: -0.02em; font-size: 22px; display: flex; align-items: baseline; gap: 4px; position: relative; }
+  .logo .b { color: var(--bone); }
+  .logo .dot { color: var(--mag); }
+  .logo::before {
+    content: "blinq"; position: absolute; left: 1.5px; top: 0;
+    color: var(--cyan); mix-blend-mode: screen; pointer-events: none; opacity: 0;
+    animation: rgbShift 4s ease-in-out infinite;
+  }
+  @keyframes rgbShift {
+    0%, 100% { transform: translate(0,0); opacity: 0; }
+    47%, 53% { transform: translate(2px, 0); opacity: 0.7; }
+    50% { transform: translate(-1.5px, 0); opacity: 0.9; }
+  }
+  .crumbs { margin-left: 14px; font-size: 12px; color: var(--bone-mute); letter-spacing: 0.04em; }
+  .crumbs .seg { color: var(--bone-dim); }
+  .crumbs .cur { color: var(--mag); }
+  .topbar-right { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+  .pill { font-size: 11px; padding: 5px 10px; border: 1px solid var(--line-2); color: var(--bone-dim); letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; }
+  .pill.live { color: var(--lime); border-color: rgba(196,255,77,0.2); }
+  .pill.live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 6px var(--lime); animation: blink 1.4s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+  .connect { background: var(--mag); color: #fff; font-weight: 600; padding: 10px 18px; font-size: 13px; border: 1px solid var(--mag); box-shadow: 4px 4px 0 0 var(--bone); transition: all .12s; }
+  .connect:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 0 var(--bone); }
+  .connect:active { transform: translate(0,0); box-shadow: 0 0 0 0 var(--bone); }
+  @media (max-width: 600px) { .crumbs { display: none; } .topbar-right .pill.compact-hide { display: none; } }
+
+  /* avatar */
+  .avatar { width: 44px; height: 44px; background: var(--mag); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 15px; font-family: 'JetBrains Mono', monospace; position: relative; border: 1px solid var(--bone); flex-shrink: 0; }
+  .avatar::after { content: ""; position: absolute; inset: 4px; border: 1px dashed rgba(255,255,255,0.4); }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    padding: 64px 0 56px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 56px;
+    align-items: start;
+  }
+  @media (max-width: 980px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+    .hero { padding: 40px 0 36px; }
+  }
+
+  .ref-line {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 26px;
+  }
+  .ref-line .who { font-size: 14px; color: var(--bone-dim); }
+  .ref-line .who b { color: var(--bone); font-weight: 600; }
+  .ref-line .you { margin-left: auto; font-size: 11px; color: var(--bone-mute); font-family: 'JetBrains Mono', monospace; }
+
+  .hero-h {
+    font-size: clamp(56px, 10vw, 140px);
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+    font-weight: 700;
+    margin: 0;
+    color: var(--bone);
+  }
+  .hero-h .pct {
+    display: inline-block;
+    color: var(--lime);
+    position: relative;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    letter-spacing: -0.06em;
+  }
+  .hero-h .pct::before,
+  .hero-h .pct::after {
+    content: "2.50%";
+    position: absolute; left: 0; top: 0;
+    mix-blend-mode: screen; pointer-events: none;
+  }
+  .hero-h .pct::before { color: var(--mag); transform: translate(-3px, 0); animation: gA 6s infinite; }
+  .hero-h .pct::after  { color: var(--cyan); transform: translate(3px, 0); animation: gB 6s infinite; }
+  @keyframes gA {
+    0%, 96%, 100% { opacity: 0; transform: translate(0,0); }
+    2%, 4% { opacity: 0.85; transform: translate(-4px, 1px); }
+    3% { opacity: 0.85; transform: translate(2px, -2px); }
+    97%, 99% { opacity: 0.85; transform: translate(-3px, 0); }
+  }
+  @keyframes gB {
+    0%, 96%, 100% { opacity: 0; transform: translate(0,0); }
+    2%, 4% { opacity: 0.85; transform: translate(4px, -1px); }
+    3% { opacity: 0.85; transform: translate(-2px, 2px); }
+    97%, 99% { opacity: 0.85; transform: translate(3px, 0); }
+  }
+  .hero-h .mute { color: var(--bone-mute); font-weight: 500; }
+  .hero-h .tok { color: var(--mag); }
+
+  .hero-sub {
+    margin-top: 28px;
+    font-size: 18px; line-height: 1.5;
+    color: var(--bone-dim);
+    max-width: 56ch;
+  }
+  @media (max-width: 600px) { .hero-sub { font-size: 15px; } }
+  .hero-sub b { color: var(--bone); font-weight: 600; }
+  .hero-sub mark { background: var(--lime); color: #0a0a0c; padding: 1px 6px; font-weight: 600; }
+
+  .hero-cta-row {
+    margin-top: 32px;
+    display: flex; gap: 14px; flex-wrap: wrap;
+  }
+  .cta {
+    display: flex; align-items: center; gap: 12px;
+    padding: 18px 26px;
+    background: var(--lime); color: #0a0a0c;
+    font-weight: 700; font-size: 16px;
+    border: 1px solid var(--lime);
+    box-shadow: 6px 6px 0 0 var(--mag);
+    transition: all .12s;
+  }
+  .cta:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 0 var(--mag); }
+  .cta:active { transform: translate(0,0); box-shadow: 0 0 0 0 var(--mag); }
+  .cta-ghost {
+    padding: 18px 22px;
+    border: 1px solid var(--line-2);
+    color: var(--bone);
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+  .cta-ghost:hover { border-color: var(--bone); }
+
+  .hero-trust {
+    margin-top: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--bone-mute);
+    display: flex; gap: 20px; flex-wrap: wrap;
+  }
+  .hero-trust .ok { color: var(--lime); }
+
+  /* hero side counter card */
+  .hero-side {
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+    position: relative;
+  }
+  .hero-side::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--mag), var(--cyan), var(--lime)); }
+  .hero-side-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.12em; color: var(--bone-mute);
+    display: flex; justify-content: space-between;
+  }
+  .hero-side-head .acc { color: var(--mag); }
+  .hero-side-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .hero-side-grid .c {
+    padding: 20px 20px;
+    border-top: 1px solid var(--line);
+  }
+  .hero-side-grid .c:nth-child(odd) { border-right: 1px solid var(--line); }
+  .hero-side-grid .c:nth-child(1), .hero-side-grid .c:nth-child(2) { border-top: 0; }
+  .hero-side-grid .k { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: var(--bone-mute); }
+  .hero-side-grid .v { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 600; color: var(--bone); margin-top: 4px; letter-spacing: -0.03em; }
+  .hero-side-grid .v.lime { color: var(--lime); }
+  .hero-side-grid .v.mag { color: var(--mag); }
+  .hero-side-grid .v small { font-size: 13px; color: var(--bone-mute); margin-left: 2px; font-weight: 400; }
+  .hero-side-grid .sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bone-dim); margin-top: 4px; }
+
+  /* ---------- ribbon ---------- */
+  .ribbon {
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    overflow: hidden;
+    position: relative;
+  }
+  .ribbon-track {
+    display: flex; gap: 36px;
+    padding: 14px 0;
+    white-space: nowrap;
+    animation: scroll 60s linear infinite;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--bone-dim);
+  }
+  .ribbon-track .seg { display: inline-flex; gap: 12px; align-items: center; }
+  .ribbon-track .seg .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--mag); }
+  .ribbon-track .seg b { color: var(--bone); font-weight: 600; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ---------- sections ---------- */
+  .section { padding: 80px 0 16px; }
+  @media (max-width: 600px) { .section { padding: 48px 0 8px; } }
+  .section-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 32px; gap: 20px; flex-wrap: wrap;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--mag);
+    letter-spacing: 0.18em;
+    margin-bottom: 12px;
+  }
+  .h2 {
+    font-size: clamp(32px, 4.5vw, 56px);
+    font-weight: 700;
+    line-height: 1; letter-spacing: -0.03em;
+    margin: 0; color: var(--bone);
+    max-width: 18ch;
+  }
+  .h2 em { color: var(--lime); font-style: normal; }
+  .section-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--bone-mute);
+  }
+  .section-meta a { color: var(--mag); }
+
+  /* market list */
+  .markets {
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+  }
+  .market-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 100px 110px 130px 110px;
+    gap: 16px; align-items: center;
+    padding: 18px 22px;
+    border-top: 1px solid var(--line);
+    transition: background .12s;
+  }
+  .market-row:first-of-type { border-top: 0; }
+  .market-row:hover { background: rgba(255,45,138,0.04); }
+  .market-row .ico {
+    width: 36px; height: 36px;
+    background: rgba(255,45,138,0.08);
+    border: 1px solid var(--line-2);
+    display: grid; place-items: center;
+    color: var(--mag); font-size: 16px;
+  }
+  .market-row .q {
+    font-size: 16px; color: var(--bone);
+    line-height: 1.3; font-weight: 500;
+  }
+  .market-row .q .meta {
+    display: block; margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.06em;
+  }
+  .market-row .yes {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 22px;
+    color: var(--lime); letter-spacing: -0.02em;
+  }
+  .market-row .yes small { font-size: 13px; color: var(--bone-mute); }
+  .market-row .vol {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--bone-dim); font-size: 13px;
+  }
+  .market-row .ends {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--bone-mute); font-size: 11px; letter-spacing: 0.08em;
+  }
+  .market-row .go {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--mag); font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+  @media (max-width: 800px) {
+    .market-row { grid-template-columns: 44px 1fr auto; row-gap: 4px; padding: 16px 18px; }
+    .market-row .vol, .market-row .ends, .market-row .go { display: none; }
+    .market-row .yes { font-size: 20px; }
+  }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 800px) { .steps { grid-template-columns: 1fr; } }
+  .step {
+    padding: 28px 24px 26px;
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+  }
+  .step .big-n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 92px; font-weight: 700; line-height: 0.85;
+    color: var(--mag); letter-spacing: -0.05em;
+    margin: -8px 0 12px;
+  }
+  .step h3 { font-size: 22px; font-weight: 600; color: var(--bone); margin: 0 0 10px; letter-spacing: -0.02em; }
+  .step p { font-size: 14px; color: var(--bone-dim); margin: 0 0 14px; line-height: 1.55; }
+  .step .code { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 9px; border: 1px solid var(--line-2); color: var(--lime); display: inline-block; }
+
+  /* leaderboard */
+  .lb {
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+  }
+  .lb-head {
+    display: grid;
+    grid-template-columns: 50px 1fr 110px 110px 90px;
+    gap: 14px; align-items: center;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.01);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.14em;
+  }
+  .lb-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 110px 110px 90px;
+    gap: 14px; align-items: center;
+    padding: 16px 22px;
+    border-top: 1px solid var(--line);
+  }
+  .lb-row:first-of-type { border-top: 0; }
+  .lb-row .r {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    color: var(--bone-mute); font-size: 16px;
+  }
+  .lb-row.top3 .r { color: var(--bone); }
+  .lb-row .n { font-size: 15px; color: var(--bone); display: flex; align-items: center; gap: 8px; overflow: hidden; }
+  .lb-row .n .id { font-size: 10px; color: var(--lime); border: 1px solid rgba(196,255,77,0.3); padding: 1px 5px; }
+  .lb-row .n .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-row .p { font-family: 'JetBrains Mono', monospace; color: var(--bone-dim); text-align: right; font-size: 14px; }
+  .lb-row .alloc { font-family: 'JetBrains Mono', monospace; color: var(--mag); text-align: right; font-size: 14px; font-weight: 600; }
+  .lb-row .t { font-family: 'JetBrains Mono', monospace; color: var(--lime); text-align: right; font-size: 12px; }
+  .lb-row .t.down { color: var(--red); }
+  .lb-row.basedchad { background: rgba(255,45,138,0.06); }
+  .lb-row.basedchad .n { color: var(--mag); font-weight: 600; }
+  .lb-row.you-could {
+    background: rgba(196,255,77,0.04);
+    border-top: 1px dashed rgba(196,255,77,0.3);
+  }
+  .lb-row.you-could .r { color: var(--lime); }
+  .lb-row.you-could .n { color: var(--lime); font-style: italic; }
+
+  @media (max-width: 700px) {
+    .lb-head, .lb-row { grid-template-columns: 40px 1fr 90px 80px; padding: 14px 16px; }
+    .lb-head .t-h, .lb-row .t { display: none; }
+  }
+
+  /* faq */
+  .faq-item {
+    border-top: 1px solid var(--line);
+    padding: 22px 0;
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 24px;
+  }
+  .faq-item:last-child { border-bottom: 1px solid var(--line); }
+  .faq-item .n {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--mag); font-size: 14px;
+  }
+  .faq-item h4 {
+    margin: 0 0 8px; font-size: 18px; font-weight: 600; color: var(--bone);
+    letter-spacing: -0.01em;
+  }
+  .faq-item p { margin: 0; font-size: 14px; color: var(--bone-dim); line-height: 1.55; }
+  @media (max-width: 600px) { .faq-item { grid-template-columns: 1fr; gap: 6px; } }
+
+  /* closing block */
+  .closer {
+    padding: 80px 0 64px;
+    border-top: 1px solid var(--line);
+    margin-top: 56px;
+  }
+  .closer-h {
+    font-size: clamp(40px, 7vw, 96px);
+    font-weight: 700;
+    line-height: 0.95; letter-spacing: -0.04em;
+    color: var(--bone);
+    margin: 0 0 28px;
+    max-width: 16ch;
+  }
+  .closer-h em { color: var(--mag); font-style: normal; }
+  .closer-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+
+  /* footer */
+  .foot { border-top: 1px solid var(--line); padding: 28px 0 48px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--bone-mute); display: flex; gap: 18px; flex-wrap: wrap; }
+  .foot .grow { flex: 1; }
+  .foot a:hover { color: var(--mag); }
+</style>
+</head>
+<body>
+
+<!-- topbar -->
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="b">blinq</span><span class="dot">.</span></div>
+    <div class="crumbs"><span class="seg">/</span> refer <span class="seg">/</span> <span class="cur">basedchad</span></div>
+    <div class="topbar-right">
+      <span class="pill live">season 01 · day 37</span>
+      <span class="pill compact-hide">privy · ok</span>
+      <button class="connect">connect →</button>
+    </div>
+  </div>
+</header>
+
+<!-- ribbon ticker -->
+<div class="ribbon">
+  <div class="ribbon-track">
+    <span class="seg"><span class="dot"></span><b>SEASON 01</b> · 53 days remaining</span>
+    <span class="seg"><span class="dot"></span><b>$8.42M</b> vol attributed</span>
+    <span class="seg"><span class="dot"></span><b>52</b> active commishes</span>
+    <span class="seg"><span class="dot"></span><b>2.50%</b> of $BLINQ pool</span>
+    <span class="seg"><span class="dot"></span><b>25M</b> $BLINQ at TGE</span>
+    <span class="seg"><span class="dot"></span><b>SEASON 01</b> · 53 days remaining</span>
+    <span class="seg"><span class="dot"></span><b>$8.42M</b> vol attributed</span>
+    <span class="seg"><span class="dot"></span><b>52</b> active commishes</span>
+    <span class="seg"><span class="dot"></span><b>2.50%</b> of $BLINQ pool</span>
+    <span class="seg"><span class="dot"></span><b>25M</b> $BLINQ at TGE</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="ref-line">
+          <div class="avatar">bc</div>
+          <div class="who"><b>@basedchad</b> sent you · you'll both earn $BLINQ on your trades.</div>
+        </div>
+
+        <h1 class="hero-h">
+          Earn<br/>
+          <span class="pct">2.50%</span><br/>
+          <span class="mute">of</span> <span class="tok">$BLINQ.</span>
+        </h1>
+
+        <p class="hero-sub">
+          Season 01 of the blinq commish program is <b>live</b>. Trade prediction markets through
+          @basedchad's link — every <mark>qualifying trade</mark> ($25+, held 24h) earns points
+          that convert pro-rata to $BLINQ allocation at TGE.
+        </p>
+
+        <div class="hero-cta-row">
+          <button class="cta">connect &amp; lock-in attribution <span>→</span></button>
+          <button class="cta-ghost">how it works ↓</button>
+        </div>
+
+        <div class="hero-trust">
+          <span><span class="ok">✓</span> email works · wallet auto-provisioned</span>
+          <span><span class="ok">✓</span> attribution locks on first trade</span>
+          <span><span class="ok">✓</span> sybil sweep applies</span>
+        </div>
+      </div>
+
+      <aside class="hero-side">
+        <div class="hero-side-head"><span>SEASON 01 · LIVE</span><span class="acc">/ 90 DAYS</span></div>
+        <div class="hero-side-grid">
+          <div class="c"><div class="k">DAYS LEFT</div><div class="v lime">53</div><div class="sub">of 90</div></div>
+          <div class="c"><div class="k">VOL ATTRIBUTED</div><div class="v">$8.42<small>M</small></div><div class="sub">+$412K · 24h</div></div>
+          <div class="c"><div class="k">COMMISHES</div><div class="v">52</div><div class="sub">/ 60 invited</div></div>
+          <div class="c"><div class="k">POOL · TGE</div><div class="v mag">25<small>M</small></div><div class="sub">$BLINQ · 2.5%</div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <!-- markets -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">// CURATED BY @BASEDCHAD</div>
+        <h2 class="h2">Markets ready <em>to trade.</em></h2>
+      </div>
+      <div class="section-meta">live · polymarket gamma · 14s ago</div>
+    </div>
+
+    <div class="markets">
+      <a href="#" class="market-row">
+        <div class="ico">⚽</div>
+        <div class="q">Will Argentina repeat as 2026 FIFA World Cup champion?<span class="meta">FIFA · BINARY · resolves Jul 19, '26</span></div>
+        <div class="yes">24<small>¢</small></div>
+        <div class="vol">$4.21M</div>
+        <div class="ends">53D LEFT</div>
+        <div class="go">trade →</div>
+      </a>
+      <a href="#" class="market-row">
+        <div class="ico">⚽</div>
+        <div class="q">Brazil to reach the 2026 World Cup final<span class="meta">FIFA · BINARY · resolves Jul 16, '26</span></div>
+        <div class="yes">41<small>¢</small></div>
+        <div class="vol">$2.08M</div>
+        <div class="ends">50D LEFT</div>
+        <div class="go">trade →</div>
+      </a>
+      <a href="#" class="market-row">
+        <div class="ico">⚽</div>
+        <div class="q">Will the 2026 final be decided in penalties?<span class="meta">FIFA · BINARY · resolves Jul 19, '26</span></div>
+        <div class="yes">31<small>¢</small></div>
+        <div class="vol">$886K</div>
+        <div class="ends">53D LEFT</div>
+        <div class="go">trade →</div>
+      </a>
+      <a href="#" class="market-row">
+        <div class="ico">⚽</div>
+        <div class="q">USA Men's National Team out before semifinals<span class="meta">FIFA · BINARY · resolves Jul 14, '26</span></div>
+        <div class="yes">73<small>¢</small></div>
+        <div class="vol">$612K</div>
+        <div class="ends">48D LEFT</div>
+        <div class="go">trade →</div>
+      </a>
+      <a href="#" class="market-row">
+        <div class="ico">⚽</div>
+        <div class="q">Messi to score in the 2026 World Cup<span class="meta">FIFA · BINARY · resolves Jul 19, '26</span></div>
+        <div class="yes">58<small>¢</small></div>
+        <div class="vol">$1.42M</div>
+        <div class="ends">53D LEFT</div>
+        <div class="go">trade →</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- how it works -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">// MECHANICS</div>
+        <h2 class="h2">Three steps. <em>$BLINQ at TGE.</em></h2>
+      </div>
+      <div class="section-meta">modeled on hyperliquid s1 points</div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="big-n">01</div>
+        <h3>Connect &amp; lock-in</h3>
+        <p>Email or wallet, your call. Privy handles the auth. @basedchad becomes your home commish on your first qualifying trade — both of you earn from there on.</p>
+        <span class="code">$25 · held 24h</span>
+      </div>
+      <div class="step">
+        <div class="big-n">02</div>
+        <h3>Trade Polymarket</h3>
+        <p>Builder code routes through Blinq. UX is unchanged. Points credit asynchronously, usually under 30s. Identity-bound accounts earn a 1.2× multiplier.</p>
+        <span class="code">1.0× · 1.2× id-bound</span>
+      </div>
+      <div class="step">
+        <div class="big-n">03</div>
+        <h3>Claim at TGE</h3>
+        <p>2.5% of $BLINQ supply, distributed pro-rata against the points board. Discretionary sybil sweep announced before snapshot. No surprises, no rugs.</p>
+        <span class="code">TGE · est Q3 2026</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- leaderboard -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">// COMMISH LEADERBOARD · LIVE</div>
+        <h2 class="h2">Top of the board <em>today.</em></h2>
+      </div>
+      <div class="section-meta">52 commishes · <a href="#">open full board →</a></div>
+    </div>
+
+    <div class="lb">
+      <div class="lb-head">
+        <span>#</span>
+        <span>commish</span>
+        <span style="text-align:right">points</span>
+        <span style="text-align:right">est. alloc</span>
+        <span style="text-align:right" class="t-h">24h</span>
+      </div>
+      <div class="lb-row top3">
+        <span class="r">01</span>
+        <span class="n"><span class="name">@cryptoharpy</span><span class="id">◇ ID</span></span>
+        <span class="p">184,021</span>
+        <span class="alloc">2.18%</span>
+        <span class="t">▲ 4.2</span>
+      </div>
+      <div class="lb-row top3">
+        <span class="r">02</span>
+        <span class="n"><span class="name">@degenmother</span><span class="id">◇ ID</span></span>
+        <span class="p">152,776</span>
+        <span class="alloc">1.81%</span>
+        <span class="t">▲ 1.8</span>
+      </div>
+      <div class="lb-row top3">
+        <span class="r">03</span>
+        <span class="n"><span class="name">@frenstech.eth</span></span>
+        <span class="p">141,303</span>
+        <span class="alloc">1.67%</span>
+        <span class="t down">▼ 0.9</span>
+      </div>
+      <div class="lb-row">
+        <span class="r">04</span>
+        <span class="n"><span class="name">0x9a32…41dc</span></span>
+        <span class="p">122,801</span>
+        <span class="alloc">1.45%</span>
+        <span class="t">▲ 2.4</span>
+      </div>
+      <div class="lb-row basedchad">
+        <span class="r">07</span>
+        <span class="n"><span class="name">@basedchad</span><span class="id">◇ ID</span></span>
+        <span class="p">88,420</span>
+        <span class="alloc">1.05%</span>
+        <span class="t">▲ 12.4</span>
+      </div>
+      <div class="lb-row you-could">
+        <span class="r">··</span>
+        <span class="n"><span class="name">you · after first trade</span></span>
+        <span class="p">+ 0</span>
+        <span class="alloc">tba</span>
+        <span class="t">—</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- faq -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">// FAQ</div>
+        <h2 class="h2">Likely questions, <em>plainly answered.</em></h2>
+      </div>
+    </div>
+
+    <div>
+      <div class="faq-item">
+        <div class="n">01</div>
+        <div>
+          <h4>What's a "qualifying trade"?</h4>
+          <p>Any trade ≥ $25 USDC, held for at least 24 hours. Below that, it accrues 0 points but still attributes you to @basedchad — your future trades still count.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="n">02</div>
+        <div>
+          <h4>Do I need a wallet?</h4>
+          <p>No. Privy provisions one from your email. Power users connect their own. Polymarket needs a wallet on the other side either way — the wallet is invisible to you if you don't want it.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="n">03</div>
+        <div>
+          <h4>Is this a token sale?</h4>
+          <p>No. Points are non-transferable. They convert pro-rata to $BLINQ at TGE. No money in to play. Trading on Polymarket is real money, separately.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="n">04</div>
+        <div>
+          <h4>What about sybil farms?</h4>
+          <p>Discretionary sweep before TGE snapshot. Identity-bound accounts (Twitter + Gitcoin Passport) earn a 1.2× multiplier and are screened first. Flagged accounts are hidden from the public board.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="n">05</div>
+        <div>
+          <h4>I'm geo-blocked. Now what?</h4>
+          <p>Polymarket isn't available in the US and a handful of other regions. You'll see an alternative-routes page if your IP is flagged. Attribution still locks for future use.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- closer -->
+  <section class="closer">
+    <h2 class="closer-h">No hype. <em>Just points,</em> trades, and a real allocation.</h2>
+    <div class="closer-row">
+      <button class="cta">connect &amp; lock-in <span>→</span></button>
+      <button class="cta-ghost">read the PRD</button>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--bone-mute);">snapshot · Aug 14, 2026</span>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div><span style="color:var(--mag);">●</span> blinq · season 01</div>
+    <div class="grow"></div>
+    <a href="#">terms</a>
+    <a href="#">geo policy</a>
+    <a href="#">sybil rules</a>
+    <a href="#">/m/argentina-repeat?c=basedchad</a>
+    <a href="#">/leaderboard</a>
+  </footer>
+
+</main>
+
+</body>
+</html>

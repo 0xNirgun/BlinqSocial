@@ -1,0 +1,14 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/",                  "destination": "/surface-2.html" },
+    { "source": "/m/:slug",           "destination": "/surface-1.html" },
+    { "source": "/refer/:commish",    "destination": "/surface-2.html" },
+    { "source": "/referrals",         "destination": "/surface-3-dashboard.html" },
+    { "source": "/referrals/leaderboard", "destination": "/surface-4-leaderboard.html" },
+    { "source": "/connect",           "destination": "/surface-5-wallet-connect.html" },
+    { "source": "/post-trade",        "destination": "/surface-6-post-trade.html" },
+    { "source": "/onboarding",        "destination": "/surface-7-onboarding.html" }
+  ]
+}

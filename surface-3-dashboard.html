@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blinq · commish dashboard · @basedchad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="glitch.css" />
+<style>
+  /* ---------- page-specific ---------- */
+  .greet-row {
+    padding: 36px 0 28px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  }
+  .greet-row .hello {
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1; letter-spacing: -0.03em;
+    font-weight: 700; color: var(--bone); margin: 0;
+  }
+  .greet-row .hello .h { color: var(--mag); }
+  .greet-row .meta {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--bone-mute);
+    display: flex; gap: 14px; flex-wrap: wrap;
+  }
+  .greet-row .meta .v { color: var(--bone); }
+
+  /* hero stat row */
+  .hero-stats {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1.2fr;
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .hero-stats::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--mag), var(--cyan), var(--lime)); }
+  .hero-stat {
+    padding: 26px 28px 24px;
+    border-left: 1px solid var(--line);
+    position: relative;
+  }
+  .hero-stat:first-child { border-left: 0; }
+  .hero-stat .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em;
+    color: var(--bone-mute);
+  }
+  .hero-stat .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 56px; font-weight: 700;
+    letter-spacing: -0.04em; line-height: 1;
+    margin-top: 12px;
+    color: var(--bone);
+  }
+  .hero-stat .v.lime { color: var(--lime); }
+  .hero-stat .v.mag { color: var(--mag); }
+  .hero-stat .v small { font-size: 22px; color: var(--bone-mute); font-weight: 500; }
+  .hero-stat .delta {
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--lime);
+  }
+  .hero-stat .delta.down { color: var(--red); }
+  .hero-stat .sub {
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-dim);
+  }
+  .hero-stat .rank-bar {
+    display: flex; align-items: baseline; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 12px;
+  }
+  .hero-stat .rank-bar .lead { font-size: 56px; font-weight: 700; color: var(--bone); letter-spacing: -0.04em; line-height: 1; }
+  .hero-stat .rank-bar .of   { font-size: 22px; color: var(--bone-mute); }
+  @media (max-width: 880px) {
+    .hero-stats { grid-template-columns: 1fr; }
+    .hero-stat { border-left: 0; border-top: 1px solid var(--line); }
+    .hero-stat:first-child { border-top: 0; }
+  }
+
+  /* dash layout */
+  .dash {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    padding: 4px 0 64px;
+  }
+  @media (max-width: 1000px) {
+    .dash { grid-template-columns: 1fr; }
+  }
+  .dash-main, .dash-side { display: flex; flex-direction: column; gap: 24px; }
+
+  /* share toolkit */
+  .share-card {
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+    position: relative;
+  }
+  .share-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--lime), var(--mag)); }
+  .share-card .head {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .share-card .head h3 {
+    margin: 0; font-size: 18px; font-weight: 600;
+    color: var(--bone); letter-spacing: -0.02em;
+  }
+  .share-card .head .badge-new {
+    background: var(--lime); color: #0a0a0c;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; padding: 3px 7px;
+    letter-spacing: 0.14em; font-weight: 700;
+  }
+  .share-card .head .ago {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute);
+  }
+
+  .share-row {
+    display: grid;
+    grid-template-columns: 36px 1fr 90px auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 22px;
+    border-top: 1px solid var(--line);
+    transition: background .12s;
+  }
+  .share-row:hover { background: rgba(255,45,138,0.04); }
+  .share-row .ico {
+    width: 32px; height: 32px;
+    background: rgba(255,45,138,0.08);
+    border: 1px solid var(--line-2);
+    display: grid; place-items: center; color: var(--mag); font-size: 14px;
+  }
+  .share-row .q { font-size: 14px; color: var(--bone); line-height: 1.3; }
+  .share-row .q .meta {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--bone-mute); margin-top: 3px; letter-spacing: 0.06em;
+  }
+  .share-row .yes {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px; font-weight: 700; color: var(--lime);
+    text-align: right; letter-spacing: -0.02em;
+  }
+  .share-row .yes small { font-size: 11px; color: var(--bone-mute); }
+  .share-row .actions { display: flex; gap: 6px; }
+  .share-row .ic-btn {
+    width: 32px; height: 32px;
+    border: 1px solid var(--line-2);
+    color: var(--bone-dim);
+    display: grid; place-items: center;
+    font-size: 14px;
+    transition: all .12s;
+  }
+  .share-row .ic-btn:hover { color: var(--bone); border-color: var(--bone); }
+  .share-row .ic-btn.copy { color: var(--mag); border-color: rgba(255,45,138,0.4); }
+  .share-row .ic-btn.copy:hover { background: var(--mag); color: #fff; border-color: var(--mag); }
+  @media (max-width: 720px) {
+    .share-row { grid-template-columns: 32px 1fr; row-gap: 8px; }
+    .share-row .yes { grid-column: 2; text-align: left; font-size: 16px; }
+    .share-row .actions { grid-column: 1 / -1; }
+  }
+
+  /* per-market table */
+  .perf {
+    border: 1px solid var(--line-2);
+    background: var(--bg-2);
+  }
+  .perf-head, .perf-row {
+    display: grid;
+    grid-template-columns: 1.4fr 90px 100px 90px 100px;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 22px;
+  }
+  .perf-head {
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.01);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; color: var(--bone-mute);
+  }
+  .perf-row { border-top: 1px solid var(--line); }
+  .perf-row:first-of-type { border-top: 0; }
+  .perf-row .name { font-size: 14px; color: var(--bone); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .perf-row .name .meta {
+    display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--bone-mute); margin-top: 3px;
+  }
+  .perf-row .num-cell {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right; font-size: 13px;
+    color: var(--bone-dim);
+  }
+  .perf-row .vol { color: var(--bone); }
+  .perf-row .pts { color: var(--lime); font-weight: 600; }
+  .perf-row .conv {
+    color: var(--bone-dim);
+    display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+  }
+  .perf-row .conv .bar {
+    width: 36px; height: 4px; background: var(--line);
+    position: relative;
+  }
+  .perf-row .conv .bar .f { position: absolute; inset: 0 auto 0 0; background: var(--mag); }
+  @media (max-width: 760px) {
+    .perf-head { display: none; }
+    .perf-row { grid-template-columns: 1fr auto; row-gap: 4px; }
+    .perf-row .num-cell:not(.pts) { display: none; }
+    .perf-row .pts { text-align: right; }
+  }
+
+  /* identity callout */
+  .id-callout {
+    border: 1px solid var(--lime);
+    background: linear-gradient(135deg, rgba(196,255,77,0.06), rgba(255,45,138,0.04));
+    padding: 22px 24px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: center;
+    position: relative;
+  }
+  .id-callout::before {
+    content: "1.2×";
+    position: absolute; top: -14px; left: 22px;
+    background: var(--lime); color: #0a0a0c;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 14px;
+    padding: 4px 10px; letter-spacing: -0.02em;
+  }
+  .id-callout h4 {
+    margin: 0 0 6px;
+    font-size: 18px; font-weight: 600;
+    color: var(--bone); letter-spacing: -0.02em;
+  }
+  .id-callout p {
+    margin: 0; font-size: 13px;
+    color: var(--bone-dim); line-height: 1.5; max-width: 56ch;
+  }
+  .id-callout .id-row {
+    display: flex; gap: 14px; margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .id-callout .id-row span { display: inline-flex; align-items: center; gap: 6px; color: var(--bone-mute); }
+  .id-callout .id-row .ok { color: var(--lime); }
+  .id-callout .id-row .pending { color: var(--amber); }
+  @media (max-width: 700px) { .id-callout { grid-template-columns: 1fr; } }
+
+  /* discovery vs curation */
+  .split-card .body {
+    padding: 18px 20px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  }
+  .split-card .seg {
+    padding: 16px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .split-card .seg .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--bone-mute); letter-spacing: 0.14em;
+  }
+  .split-card .seg .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px; font-weight: 700; margin-top: 6px;
+    color: var(--bone); letter-spacing: -0.03em;
+  }
+  .split-card .seg .v.lime { color: var(--lime); }
+  .split-card .seg .v.mag  { color: var(--mag); }
+  .split-card .seg .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-dim); margin-top: 4px;
+  }
+  .split-card .splitbar {
+    margin: 14px 20px 18px;
+    height: 6px; background: var(--line); position: relative;
+    display: flex;
+  }
+  .split-card .splitbar .l { background: var(--mag); }
+  .split-card .splitbar .r { background: var(--lime); }
+  .split-card .splitbar .l, .split-card .splitbar .r { height: 100%; }
+
+  /* mini leaderboard */
+  .mini-lb-row {
+    display: grid; grid-template-columns: 36px 1fr auto auto;
+    gap: 12px; align-items: center;
+    padding: 12px 20px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .mini-lb-row:first-of-type { border-top: 0; }
+  .mini-lb-row .r { font-family: 'JetBrains Mono', monospace; color: var(--bone-mute); font-weight: 700; }
+  .mini-lb-row .n { color: var(--bone); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mini-lb-row .n .id { font-size: 9px; color: var(--lime); border: 1px solid rgba(196,255,77,0.3); padding: 1px 4px; margin-left: 6px; font-family: 'JetBrains Mono', monospace; }
+  .mini-lb-row .p { font-family: 'JetBrains Mono', monospace; color: var(--bone-dim); }
+  .mini-lb-row .t { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--lime); }
+  .mini-lb-row .t.down { color: var(--red); }
+  .mini-lb-row.you { background: rgba(255,45,138,0.06); }
+  .mini-lb-row.you .n { color: var(--mag); font-weight: 600; }
+
+  /* ticker */
+  .tick { padding: 8px 18px; }
+  .tick .t-row {
+    display: flex; gap: 10px;
+    padding: 8px 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--bone-dim);
+    border-bottom: 1px dashed var(--line);
+  }
+  .tick .t-row:last-child { border-bottom: 0; }
+  .tick .t-row .ts { color: var(--bone-mute); width: 36px; }
+  .tick .t-row .act { color: var(--bone); }
+  .tick .t-row .amt { margin-left: auto; color: var(--lime); }
+
+  /* day countdown card */
+  .countdown {
+    padding: 22px 22px 24px;
+  }
+  .countdown .big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 72px; font-weight: 700; color: var(--lime);
+    line-height: 1; letter-spacing: -0.05em;
+  }
+  .countdown .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-mute); letter-spacing: 0.14em;
+    margin-top: 6px;
+  }
+  .countdown .progress {
+    margin-top: 16px; height: 4px; background: var(--line); position: relative;
+  }
+  .countdown .progress .f { position: absolute; inset: 0 59% 0 0; background: var(--lime); }
+  .countdown .meta {
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--bone-dim);
+    display: flex; justify-content: space-between;
+  }
+
+  /* projected pool visualization */
+  .pool-card {
+    padding: 22px 22px 24px;
+  }
+  .pool-card .big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 44px; font-weight: 700; color: var(--mag);
+    line-height: 1; letter-spacing: -0.04em;
+  }
+  .pool-card .of {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--bone-dim); margin-top: 6px;
+  }
+  .pool-card .body {
+    margin-top: 16px; font-size: 13px; color: var(--bone-dim); line-height: 1.5;
+  }
+  .pool-card .body b { color: var(--bone); }
+
+  /* user-menu in topbar */
+  .user-menu {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px 6px 6px;
+    border: 1px solid var(--line-2);
+    cursor: pointer;
+  }
+  .user-menu:hover { border-color: var(--line-3); }
+  .user-menu .h {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--bone);
+  }
+  .user-menu .r {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--mag);
+  }
+  @media (max-width: 600px) { .user-menu .h, .user-menu .r { display: none; } .user-menu { padding: 4px; } }
+</style>
+</head>
+<body>
+
+<!-- topbar -->
+<header class="topbar">
+  <div class="wrap-wide topbar-inner">
+    <div class="logo"><span class="b">blinq</span><span class="dot">.</span></div>
+    <div class="crumbs"><span class="seg">/</span> <span class="cur">referrals</span></div>
+    <div class="topbar-right">
+      <span class="pill live">season 01 · day 37</span>
+      <span class="pill compact-hide">53 days left</span>
+      <div class="user-menu">
+        <div class="avatar sm">bc</div>
+        <div class="col" style="gap:0;align-items:flex-start;">
+          <span class="h">@basedchad</span>
+          <span class="r">rank · 07</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap-wide">
+
+  <!-- greeting -->
+  <section class="greet-row">
+    <h1 class="hello"><span class="h">welcome back,</span> @basedchad.</h1>
+    <div class="meta">
+      <span><span class="v">88,420</span> pts</span>
+      <span>·</span>
+      <span><span class="v">#07</span> rank</span>
+      <span>·</span>
+      <span><span class="v">1.05%</span> projected</span>
+      <span>·</span>
+      <span><span class="v">▲ 12.4%</span> · 24h</span>
+    </div>
+  </section>
+
+  <!-- 3 hero stats -->
+  <section class="hero-stats">
+    <div class="hero-stat">
+      <div class="k">YOUR POINTS</div>
+      <div class="v">88,420</div>
+      <div class="delta">▲ 9,860 · 24h</div>
+      <div class="sub">total accrued · season 01</div>
+    </div>
+    <div class="hero-stat">
+      <div class="k">YOUR RANK</div>
+      <div class="rank-bar">
+        <span class="lead">#07</span>
+        <span class="of">/ 52</span>
+      </div>
+      <div class="delta">▲ +3 · 24h</div>
+      <div class="sub">2,418 pts to rank 06</div>
+    </div>
+    <div class="hero-stat">
+      <div class="k">PROJECTED ALLOCATION</div>
+      <div class="v mag">1.05%</div>
+      <div class="delta">≈ 262,500 $BLINQ <span style="color:var(--bone-mute)">at TGE</span></div>
+      <div class="sub">pro-rata · 2.5% pool · 25M total</div>
+    </div>
+  </section>
+
+  <div class="dash">
+
+    <div class="dash-main">
+
+      <!-- share toolkit -->
+      <section class="share-card">
+        <div class="head">
+          <h3>Share toolkit</h3>
+          <span class="badge-new">NEW</span>
+          <span class="ago">5 markets on NPI · refreshed 22s ago</span>
+        </div>
+
+        <div class="share-row">
+          <div class="ico">⚽</div>
+          <div class="q">Will Argentina repeat as 2026 FIFA World Cup champion?<span class="meta">FIFA · BINARY · ends Jul 19</span></div>
+          <div class="yes">24<small>¢ YES</small></div>
+          <div class="actions">
+            <button class="ic-btn copy" title="copy link">⎘</button>
+            <button class="ic-btn" title="twitter">𝕏</button>
+            <button class="ic-btn" title="telegram">✈</button>
+            <button class="ic-btn" title="whatsapp">●</button>
+          </div>
+        </div>
+        <div class="share-row">
+          <div class="ico">⚽</div>
+          <div class="q">Brazil to reach the 2026 World Cup final<span class="meta">FIFA · BINARY · ends Jul 16</span></div>
+          <div class="yes">41<small>¢ YES</small></div>
+          <div class="actions">
+            <button class="ic-btn copy" title="copy link">⎘</button>
+            <button class="ic-btn" title="twitter">𝕏</button>
+            <button class="ic-btn" title="telegram">✈</button>
+            <button class="ic-btn" title="whatsapp">●</button>
+          </div>
+        </div>
+        <div class="share-row">
+          <div class="ico">⚽</div>
+          <div class="q">Will the 2026 final be decided in penalties?<span class="meta">FIFA · BINARY · ends Jul 19</span></div>
+          <div class="yes">31<small>¢ YES</small></div>
+          <div class="actions">
+            <button class="ic-btn copy" title="copy link">⎘</button>
+            <button class="ic-btn" title="twitter">𝕏</button>
+            <button class="ic-btn" title="telegram">✈</button>
+            <button class="ic-btn" title="whatsapp">●</button>
+          </div>
+        </div>
+        <div class="share-row">
+          <div class="ico">⚽</div>
+          <div class="q">USA Men's National Team out before semifinals<span class="meta">FIFA · BINARY · ends Jul 14</span></div>
+          <div class="yes">73<small>¢ YES</small></div>
+          <div class="actions">
+            <button class="ic-btn copy" title="copy link">⎘</button>
+            <button class="ic-btn" title="twitter">𝕏</button>
+            <button class="ic-btn" title="telegram">✈</button>
+            <button class="ic-btn" title="whatsapp">●</button>
+          </div>
+        </div>
+        <div class="share-row">
+          <div class="ico">⚽</div>
+          <div class="q">Messi to score in the 2026 World Cup<span class="meta">FIFA · BINARY · ends Jul 19</span></div>
+          <div class="yes">58<small>¢ YES</small></div>
+          <div class="actions">
+            <button class="ic-btn copy" title="copy link">⎘</button>
+            <button class="ic-btn" title="twitter">𝕏</button>
+            <button class="ic-btn" title="telegram">✈</button>
+            <button class="ic-btn" title="whatsapp">●</button>
+          </div>
+        </div>
+
+        <div style="padding:14px 22px;border-top:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <span class="fine">
+            <span class="ok">✓</span> your universal invite: <span style="color:var(--mag);">blinq.fi/refer/basedchad</span>
+          </span>
+          <button class="btn-ghost" style="margin-left:auto;">copy universal link</button>
+          <button class="btn-cta">share to 𝕏 →</button>
+        </div>
+      </section>
+
+      <!-- per-market performance -->
+      <section class="perf">
+        <div class="card-head">
+          <h3>Per-market performance</h3>
+          <span>last 30 days · sorted by points</span>
+        </div>
+        <div class="perf-head">
+          <span>MARKET</span>
+          <span style="text-align:right">CLICKS</span>
+          <span style="text-align:right">VOL ATTR</span>
+          <span style="text-align:right">POINTS</span>
+          <span style="text-align:right">CONV.</span>
+        </div>
+        <div class="perf-row">
+          <div class="name">Will Argentina repeat as 2026 WC champion?<span class="meta">⚽ FIFA · YES @ 24¢</span></div>
+          <div class="num-cell">412</div>
+          <div class="num-cell vol">$94,200</div>
+          <div class="num-cell pts">42,108</div>
+          <div class="num-cell conv"><span class="bar"><span class="f" style="width:38%"></span></span>38%</div>
+        </div>
+        <div class="perf-row">
+          <div class="name">Brazil to reach the 2026 World Cup final<span class="meta">⚽ FIFA · YES @ 41¢</span></div>
+          <div class="num-cell">281</div>
+          <div class="num-cell vol">$52,840</div>
+          <div class="num-cell pts">23,802</div>
+          <div class="num-cell conv"><span class="bar"><span class="f" style="width:24%"></span></span>24%</div>
+        </div>
+        <div class="perf-row">
+          <div class="name">Will the 2026 final be decided in penalties?<span class="meta">⚽ FIFA · YES @ 31¢</span></div>
+          <div class="num-cell">194</div>
+          <div class="num-cell vol">$28,310</div>
+          <div class="num-cell pts">12,640</div>
+          <div class="num-cell conv"><span class="bar"><span class="f" style="width:18%"></span></span>18%</div>
+        </div>
+        <div class="perf-row">
+          <div class="name">Messi to score in the 2026 WC<span class="meta">⚽ FIFA · YES @ 58¢</span></div>
+          <div class="num-cell">118</div>
+          <div class="num-cell vol">$14,820</div>
+          <div class="num-cell pts">6,210</div>
+          <div class="num-cell conv"><span class="bar"><span class="f" style="width:12%"></span></span>12%</div>
+        </div>
+        <div class="perf-row">
+          <div class="name">USA Men's out before semifinals<span class="meta">⚽ FIFA · YES @ 73¢</span></div>
+          <div class="num-cell">86</div>
+          <div class="num-cell vol">$7,420</div>
+          <div class="num-cell pts">3,660</div>
+          <div class="num-cell conv"><span class="bar"><span class="f" style="width:8%"></span></span>8%</div>
+        </div>
+      </section>
+
+      <!-- home commish split -->
+      <section class="card accent split-card">
+        <div class="card-head">
+          <span>// HOME COMMISH STATS</span>
+          <span>147 attributed referees</span>
+        </div>
+        <div class="body">
+          <div class="seg">
+            <div class="k">DISCOVERY CREDIT</div>
+            <div class="v mag">$58,210</div>
+            <div class="sub">vol from your direct shares · 6,420 pts</div>
+          </div>
+          <div class="seg">
+            <div class="k">CURATION CREDIT</div>
+            <div class="v lime">$139,180</div>
+            <div class="sub">vol from referees' own trades · 11,840 pts</div>
+          </div>
+        </div>
+        <div class="splitbar">
+          <div class="l" style="width:30%"></div>
+          <div class="r" style="width:70%"></div>
+        </div>
+        <div style="padding:0 20px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bone-mute);display:flex;justify-content:space-between;">
+          <span>30% DISCOVERY</span>
+          <span>70% CURATION</span>
+        </div>
+      </section>
+
+      <!-- identity callout -->
+      <section class="id-callout">
+        <div>
+          <h4>Lock in your 1.2× multiplier</h4>
+          <p>Bind a Twitter handle and a Gitcoin Passport stamp to your wallet. Identity-bound accounts get a 20% multiplier on all earned points <em style="color:var(--bone);font-style:normal;">and</em> are screened first during the sybil sweep.</p>
+          <div class="id-row">
+            <span><span class="ok">●</span> wallet bound</span>
+            <span><span class="ok">●</span> twitter · @basedchad</span>
+            <span><span class="pending">●</span> gitcoin passport · pending</span>
+          </div>
+        </div>
+        <button class="btn-cta">finish binding →</button>
+      </section>
+
+    </div><!-- /dash-main -->
+
+    <aside class="dash-side">
+
+      <!-- countdown -->
+      <div class="card accent">
+        <div class="card-head"><span>SEASON 01</span><span class="acc">/ 90 DAYS</span></div>
+        <div class="countdown">
+          <div class="big">53</div>
+          <div class="label">DAYS REMAINING</div>
+          <div class="progress"><div class="f"></div></div>
+          <div class="meta">
+            <span>started Apr 21</span>
+            <span>snapshot Aug 14</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- projected pool share -->
+      <div class="card">
+        <div class="card-head"><span>YOUR POOL SHARE</span><span class="acc">PROJECTED</span></div>
+        <div class="pool-card">
+          <div class="big">1.05%</div>
+          <div class="of">of 2.50% pool · 25M $BLINQ total</div>
+          <div class="body">
+            ≈ <b>262,500 $BLINQ</b> at TGE, holding the current point velocity. Recalculates every block on /referrals/leaderboard.
+          </div>
+        </div>
+      </div>
+
+      <!-- mini leaderboard ±3 -->
+      <div class="card">
+        <div class="card-head"><span>YOUR NEIGHBORHOOD</span><span class="acc">±3</span></div>
+        <div>
+          <div class="mini-lb-row">
+            <span class="r">04</span><span class="n">0x9a32…41dc</span><span class="p">122,801</span><span class="t">▲ 2.4</span>
+          </div>
+          <div class="mini-lb-row">
+            <span class="r">05</span><span class="n">@hardmodeanon</span><span class="p">104,510</span><span class="t">▲ 1.1</span>
+          </div>
+          <div class="mini-lb-row">
+            <span class="r">06</span><span class="n">@narrativefarmer<span class="id">◇</span></span><span class="p">90,838</span><span class="t">▲ 0.4</span>
+          </div>
+          <div class="mini-lb-row you">
+            <span class="r">07</span><span class="n">@basedchad<span class="id">◇</span></span><span class="p">88,420</span><span class="t">▲ 12.4</span>
+          </div>
+          <div class="mini-lb-row">
+            <span class="r">08</span><span class="n">@onchainmaxi</span><span class="p">81,002</span><span class="t">▲ 0.3</span>
+          </div>
+          <div class="mini-lb-row">
+            <span class="r">09</span><span class="n">0xee44…0d12</span><span class="p">74,210</span><span class="t down">▼ 0.6</span>
+          </div>
+          <div class="mini-lb-row">
+            <span class="r">10</span><span class="n">@degentemporal</span><span class="p">68,820</span><span class="t">▲ 4.0</span>
+          </div>
+        </div>
+        <div style="padding:12px 20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bone-mute);">
+          <span>52 commishes</span>
+          <a href="surface-4-leaderboard.html" style="color:var(--mag);">full board →</a>
+        </div>
+      </div>
+
+      <!-- ticker -->
+      <div class="card">
+        <div class="card-head"><span>LIVE · YOUR TRADES</span></div>
+        <div class="tick">
+          <div class="t-row"><span class="ts">2s</span><span class="act">0x14…3a YES 24¢ · argentina</span><span class="amt">+$420</span></div>
+          <div class="t-row"><span class="ts">11s</span><span class="act">0xb1…f9 NO 76¢ · argentina</span><span class="amt">+$1.2K</span></div>
+          <div class="t-row"><span class="ts">38s</span><span class="act">@onchainmaxi YES · brazil</span><span class="amt">+$80</span></div>
+          <div class="t-row"><span class="ts">1m</span><span class="act">0x9c…42 YES 31¢ · penalties</span><span class="amt">+$310</span></div>
+          <div class="t-row"><span class="ts">2m</span><span class="act">0xee…0d NO · messi</span><span class="amt">+$640</span></div>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <div><span style="color:var(--mag);">●</span> blinq · season 01 · @basedchad</div>
+    <div class="grow"></div>
+    <a href="#">payouts</a>
+    <a href="#">terms</a>
+    <a href="#">sybil rules</a>
+    <a href="surface-4-leaderboard.html">/leaderboard</a>
+  </footer>
+
+</main>
+
+</body>
+</html>
