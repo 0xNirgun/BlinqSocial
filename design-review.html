@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blinq landing — design review</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; }
+  #root { width: 100%; height: 100%; }
+  /* iframe reset */
+  iframe { border: 0; display: block; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel">
+const FrameEmbed = ({ src, scrollHeight = 1800 }) => (
+  <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: '#060807' }}>
+    <iframe
+      src={src}
+      loading="lazy"
+      style={{ width: '100%', height: '100%', border: 0, display: 'block' }}
+    />
+  </div>
+);
+
+function App() {
+  return (
+    <DesignCanvas>
+
+      <DCSection
+        id="overview"
+        title="Blinq · Season 1 referral landing"
+        subtitle="2 directions × 2 surfaces × mobile + desktop. All HTML is responsive — drop the chosen direction folder into Vercel.">
+        <DCPostIt width={300}>
+          <b>Surfaces</b><br/>
+          · S1 — Market-share landing (specific market)<br/>
+          · S2 — Universal invite landing (commish's generic link)<br/><br/>
+          <b>Sample data</b><br/>
+          · Commish: <b>@basedchad</b>, rank #7<br/>
+          · Market: Argentina to repeat as 2026 FIFA WC champion · YES 24¢<br/>
+          · Season 01: day 37/90, $8.42M attributed, 25M $BLINQ pool
+        </DCPostIt>
+        <DCPostIt width={300} color="#d8f0e2">
+          <b>Aesthetic notes</b><br/>
+          <b>A · TERMINAL</b> — phosphor green on near-black, full IBM Plex Mono, scanline overlay, ASCII-window chrome, blinking cursor in commish commentary.<br/><br/>
+          <b>B · GLITCH</b> — brutalist editorial, Space Grotesk display + JetBrains Mono numerals, magenta primary with lime / cyan, hard offset shadows on CTAs, RGB-shift on hero %, ticker ribbon.
+        </DCPostIt>
+        <DCPostIt width={280} color="#fde2c6">
+          <b>Deploy to Vercel</b><br/>
+          Each direction is self-contained (only Google Fonts external).<br/><br/>
+          1. Pick a direction folder (<code>v1-terminal/</code> or <code>v2-glitch/</code>)<br/>
+          2. Rename pages to match routes:<br/>
+          &nbsp;&nbsp;<code>surface-1.html</code> → <code>m/[slug]/index.html</code><br/>
+          &nbsp;&nbsp;<code>surface-2.html</code> → <code>refer/[id]/index.html</code><br/>
+          3. <code>vercel deploy</code>
+        </DCPostIt>
+      </DCSection>
+
+      <DCSection
+        id="terminal"
+        title="A · TERMINAL"
+        subtitle="Phosphor green, full monospace, scanlines, ASCII chrome. Hyperliquid-adjacent without copying it.">
+        <DCArtboard id="t-s1-desktop" label="S1 · Market-share · desktop 1280" width={1280} height={1700}>
+          <FrameEmbed src="v1-terminal/surface-1.html" />
+        </DCArtboard>
+        <DCArtboard id="t-s1-mobile" label="S1 · Market-share · mobile 375" width={375} height={1700}>
+          <FrameEmbed src="v1-terminal/surface-1.html" />
+        </DCArtboard>
+        <DCArtboard id="t-s2-desktop" label="S2 · Universal invite · desktop 1280" width={1280} height={2200}>
+          <FrameEmbed src="v1-terminal/surface-2.html" />
+        </DCArtboard>
+        <DCArtboard id="t-s2-mobile" label="S2 · Universal invite · mobile 375" width={375} height={2200}>
+          <FrameEmbed src="v1-terminal/surface-2.html" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection
+        id="glitch-landing"
+        title="B · GLITCH — landing pages (S1, S2)"
+        subtitle="Brutalist editorial. Oversized display type, magenta/lime/cyan, hard offset shadows, RGB-shift accents.">
+        <DCArtboard id="g-s1-desktop" label="S1 · Market-share · desktop 1280" width={1280} height={1700}>
+          <FrameEmbed src="v2-glitch/surface-1.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s1-mobile" label="S1 · Market-share · mobile 375" width={375} height={1700}>
+          <FrameEmbed src="v2-glitch/surface-1.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s2-desktop" label="S2 · Universal invite · desktop 1280" width={1280} height={2400}>
+          <FrameEmbed src="v2-glitch/surface-2.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s2-mobile" label="S2 · Universal invite · mobile 375" width={375} height={2400}>
+          <FrameEmbed src="v2-glitch/surface-2.html" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection
+        id="glitch-app"
+        title="B · GLITCH — authenticated surfaces (S3, S4)"
+        subtitle="Commish dashboard (desktop-first) and the public leaderboard.">
+        <DCArtboard id="g-s3-desktop" label="S3 · Dashboard · desktop 1280" width={1280} height={2400}>
+          <FrameEmbed src="v2-glitch/surface-3-dashboard.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s3-mobile" label="S3 · Dashboard · mobile 375" width={375} height={3200}>
+          <FrameEmbed src="v2-glitch/surface-3-dashboard.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s4-desktop" label="S4 · Leaderboard · desktop 1280" width={1280} height={2400}>
+          <FrameEmbed src="v2-glitch/surface-4-leaderboard.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s4-mobile" label="S4 · Leaderboard · mobile 375" width={375} height={2600}>
+          <FrameEmbed src="v2-glitch/surface-4-leaderboard.html" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection
+        id="glitch-modals"
+        title="B · GLITCH — modal flows (S5, S6, S7)"
+        subtitle="Wallet-connect states (Privy), post-trade return overlay, commish onboarding flow.">
+        <DCArtboard id="g-s5-desktop" label="S5 · Wallet connect · 4 states · desktop" width={1280} height={1700}>
+          <FrameEmbed src="v2-glitch/surface-5-wallet-connect.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s5-mobile" label="S5 · Wallet connect · 4 states · mobile" width={375} height={3600}>
+          <FrameEmbed src="v2-glitch/surface-5-wallet-connect.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s6-desktop" label="S6 · Post-trade · 3 states · desktop" width={1280} height={1500}>
+          <FrameEmbed src="v2-glitch/surface-6-post-trade.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s6-mobile" label="S6 · Post-trade · 3 states · mobile" width={375} height={3000}>
+          <FrameEmbed src="v2-glitch/surface-6-post-trade.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s7-desktop" label="S7 · Onboarding · 4-step · desktop" width={1280} height={1800}>
+          <FrameEmbed src="v2-glitch/surface-7-onboarding.html" />
+        </DCArtboard>
+        <DCArtboard id="g-s7-mobile" label="S7 · Onboarding · 4-step · mobile" width={375} height={3400}>
+          <FrameEmbed src="v2-glitch/surface-7-onboarding.html" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection
+        id="next"
+        title="Next moves"
+        subtitle="">
+        <DCPostIt width={300} color="#e6dbf2">
+          <b>Glitch · complete</b><br/>
+          All 7 surfaces shipped. Each is its own HTML file in <code>v2-glitch/</code>.<br/><br/>
+          S3–S7 share <code>glitch.css</code> for the design system. S1 + S2 stay self-contained (they were already inlined and work standalone).
+        </DCPostIt>
+        <DCPostIt width={300}>
+          <b>Still not designed</b><br/>
+          · Empty / loading / error states across S3–S7<br/>
+          · Day-1 zero state for the leaderboard<br/>
+          · TGE claim flow (S8 — separate brief)<br/>
+          · Terminal-direction equivalents of S3–S7
+        </DCPostIt>
+        <DCPostIt width={300} color="#fde2c6">
+          <b>Open questions</b><br/>
+          · Real brand colors / type / logo from Figma kit<br/>
+          · Confirm @basedchad commentary copy style with real commish<br/>
+          · Confirm sample FIFA markets resolve via Gamma API slugs<br/>
+          · Privy modal styling limits — what can we override?
+        </DCPostIt>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
